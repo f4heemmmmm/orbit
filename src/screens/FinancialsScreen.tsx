@@ -4,8 +4,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  TextInput,
-  Modal,
 } from 'react-native';
 import {
   UtensilsCrossed,
@@ -17,11 +15,10 @@ import {
   HeartPulse,
   MoreHorizontal,
   Plus,
-  ArrowUpCircle,
-  ArrowDownCircle,
   Wallet,
   LucideIcon,
 } from 'lucide-react-native';
+import AddTransactionModal, { TransactionData } from '../components/AddTransactionModal';
 
 interface Category {
   id: string;
@@ -33,6 +30,7 @@ interface Category {
 interface Transaction {
   id: string;
   title: string;
+  description: string;
   amount: number;
   type: 'income' | 'expense';
   category: string;
@@ -59,23 +57,19 @@ const getDateString = (daysAgo: number): string => {
 };
 
 const INITIAL_TRANSACTIONS: Transaction[] = [
-  { id: '1', title: 'Coffee', amount: 5.50, type: 'expense', category: 'Food', date: getDateString(0) },
-  { id: '2', title: 'Grocery Shopping', amount: 150, type: 'expense', category: 'Food', date: getDateString(0) },
-  { id: '3', title: 'Uber Ride', amount: 25, type: 'expense', category: 'Transport', date: getDateString(1) },
-  { id: '4', title: 'Freelance Payment', amount: 800, type: 'income', category: 'Salary', date: getDateString(1) },
-  { id: '5', title: 'Electric Bill', amount: 80, type: 'expense', category: 'Bills', date: getDateString(3) },
-  { id: '6', title: 'Monthly Salary', amount: 5000, type: 'income', category: 'Salary', date: getDateString(5) },
-  { id: '7', title: 'Movie Tickets', amount: 30, type: 'expense', category: 'Entertainment', date: getDateString(8) },
-  { id: '8', title: 'Doctor Visit', amount: 120, type: 'expense', category: 'Health', date: getDateString(15) },
+  { id: '1', title: 'Coffee', description: 'Morning latte at Starbucks', amount: 5.50, type: 'expense', category: 'Food', date: getDateString(0) },
+  { id: '2', title: 'Grocery Shopping', description: 'Weekly groceries from Whole Foods', amount: 150, type: 'expense', category: 'Food', date: getDateString(0) },
+  { id: '3', title: 'Uber Ride', description: 'Trip to downtown', amount: 25, type: 'expense', category: 'Transport', date: getDateString(1) },
+  { id: '4', title: 'Freelance Payment', description: 'Website design project', amount: 800, type: 'income', category: 'Salary', date: getDateString(1) },
+  { id: '5', title: 'Electric Bill', description: 'December electricity', amount: 80, type: 'expense', category: 'Bills', date: getDateString(3) },
+  { id: '6', title: 'Monthly Salary', description: 'December salary', amount: 5000, type: 'income', category: 'Salary', date: getDateString(5) },
+  { id: '7', title: 'Movie Tickets', description: 'Avatar 3 with friends', amount: 30, type: 'expense', category: 'Entertainment', date: getDateString(8) },
+  { id: '8', title: 'Doctor Visit', description: 'Annual checkup', amount: 120, type: 'expense', category: 'Health', date: getDateString(15) },
 ];
 
 export default function FinancialsScreen(): React.JSX.Element {
   const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
   const [modalVisible, setModalVisible] = useState(false);
-  const [title, setTitle] = useState('');
-  const [amount, setAmount] = useState('');
-  const [type, setType] = useState<'income' | 'expense'>('expense');
-  const [selectedCategory, setSelectedCategory] = useState('Other');
 
   const totalIncome = transactions
     .filter(t => t.type === 'income')
@@ -87,23 +81,17 @@ export default function FinancialsScreen(): React.JSX.Element {
 
   const balance = totalIncome - totalExpenses;
 
-  const addTransaction = (): void => {
-    if (!title.trim() || !amount.trim()) return;
-    
+  const handleAddTransaction = (data: TransactionData): void => {
     const newTransaction: Transaction = {
       id: Date.now().toString(),
-      title: title.trim(),
-      amount: parseFloat(amount),
-      type,
-      category: selectedCategory,
+      title: data.title,
+      description: data.description,
+      amount: data.amount,
+      type: data.type,
+      category: data.category,
       date: new Date().toISOString().split('T')[0],
     };
-    
     setTransactions([newTransaction, ...transactions]);
-    setTitle('');
-    setAmount('');
-    setType('expense');
-    setSelectedCategory('Other');
     setModalVisible(false);
   };
 
@@ -249,99 +237,11 @@ export default function FinancialsScreen(): React.JSX.Element {
         <Plus size={25} color="#0f0f1a" />
       </TouchableOpacity>
 
-      {/* Add Transaction Modal */}
-      <Modal visible={modalVisible} animationType="slide" transparent>
-        <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
-          <View className="rounded-t-3xl p-6 max-h-[80%]" style={{ backgroundColor: '#1a1a2e' }}>
-            <Text style={{ color: '#e8e8e8' }} className="text-xl font-bold mb-5 text-center">Add Transaction</Text>
-
-            <TextInput
-              className="rounded-xl p-4 text-base mb-3"
-              style={{ backgroundColor: '#252540', color: '#e8e8e8' }}
-              placeholder="Title"
-              placeholderTextColor="#6b6b80"
-              value={title}
-              onChangeText={setTitle}
-            />
-
-            <TextInput
-              className="rounded-xl p-4 text-base mb-3"
-              style={{ backgroundColor: '#252540', color: '#e8e8e8' }}
-              placeholder="Amount"
-              placeholderTextColor="#6b6b80"
-              value={amount}
-              onChangeText={setAmount}
-              keyboardType="numeric"
-            />
-
-            {/* Type Toggle */}
-            <View className="flex-row mb-4 gap-3">
-              <TouchableOpacity
-                className="flex-1 p-3 rounded-xl items-center"
-                style={{ backgroundColor: type === 'expense' ? '#f5a0a0' : '#252540' }}
-                onPress={() => setType('expense')}
-              >
-                <Text style={{ color: type === 'expense' ? '#0f0f1a' : '#a0a0b0' }} className="text-base font-medium">
-                  Expense
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="flex-1 p-3 rounded-xl items-center"
-                style={{ backgroundColor: type === 'income' ? '#7dd3a8' : '#252540' }}
-                onPress={() => setType('income')}
-              >
-                <Text style={{ color: type === 'income' ? '#0f0f1a' : '#a0a0b0' }} className="text-base font-medium">
-                  Income
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Category Selection */}
-            <Text style={{ color: '#a0a0b0' }} className="text-sm font-medium mb-2">Category</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-5">
-              {CATEGORIES.map(cat => {
-                const CatIcon = cat.icon;
-                return (
-                  <TouchableOpacity
-                    key={cat.id}
-                    className="flex-row items-center px-4 py-2.5 rounded-full mr-2"
-                    style={{ backgroundColor: selectedCategory === cat.name ? cat.color : '#252540' }}
-                    onPress={() => setSelectedCategory(cat.name)}
-                  >
-                    <CatIcon
-                      size={20}
-                      color={selectedCategory === cat.name ? '#0f0f1a' : cat.color}
-                    />
-                    <Text
-                      className="text-sm ml-1.5"
-                      style={{ color: selectedCategory === cat.name ? '#0f0f1a' : '#a0a0b0' }}
-                    >
-                      {cat.name}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-
-            <View className="flex-row gap-3">
-              <TouchableOpacity
-                className="flex-1 p-4 rounded-xl items-center"
-                style={{ backgroundColor: '#252540' }}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={{ color: '#a0a0b0' }} className="text-base font-semibold">Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="flex-1 p-4 rounded-xl items-center"
-                style={{ backgroundColor: '#a0c4ff' }}
-                onPress={addTransaction}
-              >
-                <Text style={{ color: '#0f0f1a' }} className="text-base font-semibold">Add</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <AddTransactionModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onAdd={handleAddTransaction}
+      />
     </View>
   );
 }
