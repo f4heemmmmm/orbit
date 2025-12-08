@@ -1,0 +1,5 @@
+This is a placeholder. Replace with actual image files:
+- icon.png (1024x1024)
+- splash-icon.png (1024x1024)
+- adaptive-icon.png (1024x1024)
+- favicon.png (48x48)
