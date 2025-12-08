@@ -8,22 +8,32 @@ import FinancialsScreen from './src/screens/FinancialsScreen';
 import TasksScreen from './src/screens/TasksScreen';
 import ScheduleScreen from './src/screens/ScheduleScreen';
 
-const Tab = createBottomTabNavigator();
+import './global.css';
 
-export default function App() {
+type TabParamList = {
+  Financials: undefined;
+  Tasks: undefined;
+  Schedule: undefined;
+};
+
+const Tab = createBottomTabNavigator<TabParamList>();
+
+type IconName = 'wallet' | 'wallet-outline' | 'checkbox' | 'checkbox-outline' | 'calendar' | 'calendar-outline';
+
+export default function App(): React.JSX.Element {
   return (
     <NavigationContainer>
       <StatusBar style="dark" />
       <Tab.Navigator
         screenOptions={({ route }) => ({
           tabBarIcon: ({ focused, color, size }) => {
-            let iconName;
+            let iconName: IconName;
 
             if (route.name === 'Financials') {
               iconName = focused ? 'wallet' : 'wallet-outline';
             } else if (route.name === 'Tasks') {
               iconName = focused ? 'checkbox' : 'checkbox-outline';
-            } else if (route.name === 'Schedule') {
+            } else {
               iconName = focused ? 'calendar' : 'calendar-outline';
             }
 
@@ -39,18 +49,18 @@ export default function App() {
           },
         })}
       >
-        <Tab.Screen
-          name="Financials"
+        <Tab.Screen 
+          name="Financials" 
           component={FinancialsScreen}
           options={{ title: 'Financials' }}
         />
-        <Tab.Screen
-          name="Tasks"
+        <Tab.Screen 
+          name="Tasks" 
           component={TasksScreen}
           options={{ title: 'Tasks' }}
         />
-        <Tab.Screen
-          name="Schedule"
+        <Tab.Screen 
+          name="Schedule" 
           component={ScheduleScreen}
           options={{ title: 'Schedule' }}
         />
