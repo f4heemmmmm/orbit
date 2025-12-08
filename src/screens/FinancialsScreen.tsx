@@ -7,14 +7,26 @@ import {
   TextInput,
   Modal,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-
-type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+import {
+  UtensilsCrossed,
+  Car,
+  Receipt,
+  Banknote,
+  ShoppingBag,
+  Gamepad2,
+  HeartPulse,
+  MoreHorizontal,
+  Plus,
+  ArrowUpCircle,
+  ArrowDownCircle,
+  Wallet,
+  LucideIcon,
+} from 'lucide-react-native';
 
 interface Category {
   id: string;
   name: string;
-  icon: IoniconsName;
+  icon: LucideIcon;
   color: string;
 }
 
@@ -29,14 +41,14 @@ interface Transaction {
 
 // Pastel colors for dark mode
 const CATEGORIES: Category[] = [
-  { id: '1', name: 'Food', icon: 'fast-food', color: '#ffadad' },
-  { id: '2', name: 'Transport', icon: 'car', color: '#9bf6e3' },
-  { id: '3', name: 'Bills', icon: 'receipt', color: '#fdffb6' },
-  { id: '4', name: 'Salary', icon: 'cash', color: '#7dd3a8' },
-  { id: '5', name: 'Shopping', icon: 'bag', color: '#ffc6ff' },
-  { id: '6', name: 'Entertainment', icon: 'game-controller', color: '#bdb2ff' },
-  { id: '7', name: 'Health', icon: 'medical', color: '#ffd6a5' },
-  { id: '8', name: 'Other', icon: 'ellipsis-horizontal', color: '#a0a0b0' },
+  { id: '1', name: 'Food', icon: UtensilsCrossed, color: '#ffadad' },
+  { id: '2', name: 'Transport', icon: Car, color: '#9bf6e3' },
+  { id: '3', name: 'Bills', icon: Receipt, color: '#fdffb6' },
+  { id: '4', name: 'Salary', icon: Banknote, color: '#7dd3a8' },
+  { id: '5', name: 'Shopping', icon: ShoppingBag, color: '#ffc6ff' },
+  { id: '6', name: 'Entertainment', icon: Gamepad2, color: '#bdb2ff' },
+  { id: '7', name: 'Health', icon: HeartPulse, color: '#ffd6a5' },
+  { id: '8', name: 'Other', icon: MoreHorizontal, color: '#a0a0b0' },
 ];
 
 // Helper to get date strings relative to today
@@ -164,13 +176,14 @@ export default function FinancialsScreen(): React.JSX.Element {
 
   const renderTransaction = (item: Transaction): React.JSX.Element => {
     const category = getCategoryInfo(item.category);
+    const IconComponent = category.icon;
     return (
       <View key={item.id} className="flex-row items-center rounded-xl p-4 mb-2" style={{ backgroundColor: '#1a1a2e' }}>
         <View
           className="w-11 h-11 rounded-full justify-center items-center"
           style={{ backgroundColor: category.color + '30' }}
         >
-          <Ionicons name={category.icon} size={20} color={category.color} />
+          <IconComponent size={20} color={category.color} />
         </View>
         <View className="flex-1 ml-3">
           <Text style={{ color: '#e8e8e8' }} className="text-base font-medium">{item.title}</Text>
@@ -195,12 +208,10 @@ export default function FinancialsScreen(): React.JSX.Element {
         </View>
         <View className="flex-row gap-3">
           <View className="flex-1 rounded-2xl p-5 items-center" style={{ backgroundColor: '#1a1a2e' }}>
-            <Ionicons name="arrow-up-circle" size={24} color="#7dd3a8" />
             <Text style={{ color: '#a0a0b0' }} className="text-sm">Income</Text>
             <Text style={{ color: '#7dd3a8' }} className="text-xl font-bold">${totalIncome.toFixed(2)}</Text>
           </View>
           <View className="flex-1 rounded-2xl p-5 items-center" style={{ backgroundColor: '#1a1a2e' }}>
-            <Ionicons name="arrow-down-circle" size={24} color="#f5a0a0" />
             <Text style={{ color: '#a0a0b0' }} className="text-sm">Expenses</Text>
             <Text style={{ color: '#f5a0a0' }} className="text-xl font-bold">${totalExpenses.toFixed(2)}</Text>
           </View>
@@ -215,7 +226,7 @@ export default function FinancialsScreen(): React.JSX.Element {
       <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
         {sortedDates.length === 0 ? (
           <View className="items-center justify-center pt-16">
-            <Ionicons name="wallet-outline" size={48} color="#6b6b80" />
+            <Wallet size={48} color="#6b6b80" />
             <Text style={{ color: '#6b6b80' }} className="text-base mt-3">No transactions yet</Text>
           </View>
         ) : (
@@ -231,11 +242,11 @@ export default function FinancialsScreen(): React.JSX.Element {
 
       {/* Add Button */}
       <TouchableOpacity
-        className="absolute right-5 bottom-5 w-14 h-14 rounded-full justify-center items-center shadow-lg"
+        className="absolute right-5 bottom-5 w-12 h-12 rounded-full justify-center items-center shadow-lg"
         style={{ backgroundColor: '#a0c4ff' }}
         onPress={() => setModalVisible(true)}
       >
-        <Ionicons name="add" size={30} color="#0f0f1a" />
+        <Plus size={25} color="#0f0f1a" />
       </TouchableOpacity>
 
       {/* Add Transaction Modal */}
@@ -288,26 +299,28 @@ export default function FinancialsScreen(): React.JSX.Element {
             {/* Category Selection */}
             <Text style={{ color: '#a0a0b0' }} className="text-sm font-medium mb-2">Category</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-5">
-              {CATEGORIES.map(cat => (
-                <TouchableOpacity
-                  key={cat.id}
-                  className="flex-row items-center px-4 py-2.5 rounded-full mr-2"
-                  style={{ backgroundColor: selectedCategory === cat.name ? cat.color : '#252540' }}
-                  onPress={() => setSelectedCategory(cat.name)}
-                >
-                  <Ionicons
-                    name={cat.icon}
-                    size={20}
-                    color={selectedCategory === cat.name ? '#0f0f1a' : cat.color}
-                  />
-                  <Text
-                    className="text-sm ml-1.5"
-                    style={{ color: selectedCategory === cat.name ? '#0f0f1a' : '#a0a0b0' }}
+              {CATEGORIES.map(cat => {
+                const CatIcon = cat.icon;
+                return (
+                  <TouchableOpacity
+                    key={cat.id}
+                    className="flex-row items-center px-4 py-2.5 rounded-full mr-2"
+                    style={{ backgroundColor: selectedCategory === cat.name ? cat.color : '#252540' }}
+                    onPress={() => setSelectedCategory(cat.name)}
                   >
-                    {cat.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    <CatIcon
+                      size={20}
+                      color={selectedCategory === cat.name ? '#0f0f1a' : cat.color}
+                    />
+                    <Text
+                      className="text-sm ml-1.5"
+                      style={{ color: selectedCategory === cat.name ? '#0f0f1a' : '#a0a0b0' }}
+                    >
+                      {cat.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </ScrollView>
 
             <View className="flex-row gap-3">

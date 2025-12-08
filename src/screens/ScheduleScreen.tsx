@@ -7,14 +7,21 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-
-type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+import {
+  Dumbbell,
+  FileText,
+  GraduationCap,
+  MoreHorizontal,
+  XCircle,
+  Plus,
+  Calendar,
+  LucideIcon,
+} from 'lucide-react-native';
 
 interface EventType {
   id: 'activity' | 'exam' | 'class' | 'other';
   label: string;
-  icon: IoniconsName;
+  icon: LucideIcon;
   color: string;
 }
 
@@ -29,10 +36,10 @@ interface ScheduleEvent {
 
 // Pastel colors for dark mode
 const EVENT_TYPES: EventType[] = [
-  { id: 'activity', label: 'Activity', icon: 'fitness', color: '#bdb2ff' },
-  { id: 'exam', label: 'Exam', icon: 'document-text', color: '#f5a0a0' },
-  { id: 'class', label: 'Class', icon: 'school', color: '#a0c4ff' },
-  { id: 'other', label: 'Other', icon: 'ellipsis-horizontal', color: '#9bf6e3' },
+  { id: 'activity', label: 'Activity', icon: Dumbbell, color: '#bdb2ff' },
+  { id: 'exam', label: 'Exam', icon: FileText, color: '#f5a0a0' },
+  { id: 'class', label: 'Class', icon: GraduationCap, color: '#a0c4ff' },
+  { id: 'other', label: 'Other', icon: MoreHorizontal, color: '#9bf6e3' },
 ];
 
 const INITIAL_EVENTS: ScheduleEvent[] = [
@@ -112,6 +119,7 @@ export default function ScheduleScreen(): React.JSX.Element {
 
   const renderEvent = (item: ScheduleEvent): React.JSX.Element => {
     const typeInfo = getTypeInfo(item.type);
+    const IconComponent = typeInfo.icon;
     return (
       <View key={item.id} className="flex-row mb-3">
         <View className="w-12 pt-3">
@@ -126,14 +134,14 @@ export default function ScheduleScreen(): React.JSX.Element {
               className="w-9 h-9 rounded-full justify-center items-center"
               style={{ backgroundColor: typeInfo.color + '25' }}
             >
-              <Ionicons name={typeInfo.icon} size={18} color={typeInfo.color} />
+              <IconComponent size={18} color={typeInfo.color} />
             </View>
             <View className="flex-1 ml-3">
               <Text style={{ color: '#e8e8e8' }} className="text-base font-medium">{item.title}</Text>
               <Text style={{ color: '#a0a0b0' }} className="text-xs mt-0.5">{typeInfo.label}</Text>
             </View>
             <TouchableOpacity onPress={() => deleteEvent(item.id)} className="p-1">
-              <Ionicons name="close-circle" size={22} color="#6b6b80" />
+              <XCircle size={22} color="#6b6b80" />
             </TouchableOpacity>
           </View>
           {item.description ? (
@@ -154,17 +162,20 @@ export default function ScheduleScreen(): React.JSX.Element {
       {/* Type Stats */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="max-h-24">
         <View className="flex-row p-4 gap-3">
-          {EVENT_TYPES.map(type => (
-            <View
-              key={type.id}
-              className="rounded-2xl p-4 items-center min-w-[80px]"
-              style={{ backgroundColor: '#1a1a2e', borderWidth: 2, borderColor: type.color }}
-            >
-              <Ionicons name={type.icon} size={24} color={type.color} />
-              <Text style={{ color: '#e8e8e8' }} className="text-xl font-bold mt-1">{typeCounts[type.id]}</Text>
-              <Text style={{ color: '#a0a0b0' }} className="text-xs mt-0.5">{type.label}</Text>
-            </View>
-          ))}
+          {EVENT_TYPES.map(type => {
+            const TypeIcon = type.icon;
+            return (
+              <View
+                key={type.id}
+                className="rounded-2xl p-4 items-center min-w-[80px]"
+                style={{ backgroundColor: '#1a1a2e', borderWidth: 2, borderColor: type.color }}
+              >
+                <TypeIcon size={24} color={type.color} />
+                <Text style={{ color: '#e8e8e8' }} className="text-xl font-bold mt-1">{typeCounts[type.id]}</Text>
+                <Text style={{ color: '#a0a0b0' }} className="text-xs mt-0.5">{type.label}</Text>
+              </View>
+            );
+          })}
         </View>
       </ScrollView>
 
@@ -205,7 +216,7 @@ export default function ScheduleScreen(): React.JSX.Element {
       <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
         {sortedDates.length === 0 ? (
           <View className="items-center justify-center pt-16">
-            <Ionicons name="calendar-outline" size={48} color="#6b6b80" />
+            <Calendar size={48} color="#6b6b80" />
             <Text style={{ color: '#6b6b80' }} className="text-base mt-3">No events scheduled</Text>
           </View>
         ) : (
@@ -225,7 +236,7 @@ export default function ScheduleScreen(): React.JSX.Element {
         style={{ backgroundColor: '#a0c4ff' }}
         onPress={() => setModalVisible(true)}
       >
-        <Ionicons name="add" size={30} color="#0f0f1a" />
+        <Plus size={30} color="#0f0f1a" />
       </TouchableOpacity>
 
       {/* Add Event Modal */}
@@ -274,26 +285,28 @@ export default function ScheduleScreen(): React.JSX.Element {
             {/* Type Selection */}
             <Text style={{ color: '#a0a0b0' }} className="text-sm font-medium mb-2">Event Type</Text>
             <View className="flex-row flex-wrap gap-2.5 mb-5">
-              {EVENT_TYPES.map(type => (
-                <TouchableOpacity
-                  key={type.id}
-                  className="flex-row items-center px-3.5 py-2.5 rounded-xl"
-                  style={{ backgroundColor: selectedType === type.id ? type.color : '#252540' }}
-                  onPress={() => setSelectedType(type.id)}
-                >
-                  <Ionicons
-                    name={type.icon}
-                    size={20}
-                    color={selectedType === type.id ? '#0f0f1a' : type.color}
-                  />
-                  <Text
-                    className="text-sm font-medium ml-1.5"
-                    style={{ color: selectedType === type.id ? '#0f0f1a' : '#a0a0b0' }}
+              {EVENT_TYPES.map(type => {
+                const TypeIcon = type.icon;
+                return (
+                  <TouchableOpacity
+                    key={type.id}
+                    className="flex-row items-center px-3.5 py-2.5 rounded-xl"
+                    style={{ backgroundColor: selectedType === type.id ? type.color : '#252540' }}
+                    onPress={() => setSelectedType(type.id)}
                   >
-                    {type.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    <TypeIcon
+                      size={20}
+                      color={selectedType === type.id ? '#0f0f1a' : type.color}
+                    />
+                    <Text
+                      className="text-sm font-medium ml-1.5"
+                      style={{ color: selectedType === type.id ? '#0f0f1a' : '#a0a0b0' }}
+                    >
+                      {type.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
             <View className="flex-row gap-3">

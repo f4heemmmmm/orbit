@@ -8,7 +8,7 @@ import {
   FlatList,
   ListRenderItem,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { CheckSquare, Square, Trash2, Plus } from 'lucide-react-native';
 
 interface Priority {
   id: 'low' | 'medium' | 'high';
@@ -96,11 +96,11 @@ export default function TasksScreen(): React.JSX.Element {
     return (
       <View className="flex-row items-center rounded-xl p-4 mb-2" style={{ backgroundColor: '#1a1a2e' }}>
         <TouchableOpacity onPress={() => toggleTask(item.id)} className="mr-3">
-          <Ionicons
-            name={item.completed ? 'checkbox' : 'square-outline'}
-            size={26}
-            color={item.completed ? '#7dd3a8' : '#6b6b80'}
-          />
+          {item.completed ? (
+            <CheckSquare size={26} color="#7dd3a8" />
+          ) : (
+            <Square size={26} color="#6b6b80" />
+          )}
         </TouchableOpacity>
         <View className="flex-1">
           <Text
@@ -128,7 +128,7 @@ export default function TasksScreen(): React.JSX.Element {
           </View>
         </View>
         <TouchableOpacity onPress={() => deleteTask(item.id)} className="p-2">
-          <Ionicons name="trash-outline" size={20} color="#f5a0a0" />
+          <Trash2 size={20} color="#f5a0a0" />
         </TouchableOpacity>
       </View>
     );
@@ -182,7 +182,7 @@ export default function TasksScreen(): React.JSX.Element {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View className="items-center justify-center pt-16">
-            <Ionicons name="checkbox-outline" size={48} color="#6b6b80" />
+            <CheckSquare size={48} color="#6b6b80" />
             <Text style={{ color: '#6b6b80' }} className="text-base mt-3">No tasks found</Text>
           </View>
         }
@@ -194,7 +194,7 @@ export default function TasksScreen(): React.JSX.Element {
         style={{ backgroundColor: '#a0c4ff' }}
         onPress={() => setModalVisible(true)}
       >
-        <Ionicons name="add" size={30} color="#0f0f1a" />
+        <Plus size={30} color="#0f0f1a" />
       </TouchableOpacity>
 
       {/* Add Task Modal */}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
+import { Wallet, CheckSquare, Calendar } from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
 
 import FinancialsScreen from './src/screens/FinancialsScreen';
@@ -18,26 +18,20 @@ type TabParamList = {
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
-type IconName = 'wallet' | 'wallet-outline' | 'checkbox' | 'checkbox-outline' | 'calendar' | 'calendar-outline';
-
 export default function App(): React.JSX.Element {
   return (
     <NavigationContainer>
       <StatusBar style="light" />
       <Tab.Navigator
         screenOptions={({ route }) => ({
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName: IconName;
-
+          tabBarIcon: ({ color, size }) => {
             if (route.name === 'Financials') {
-              iconName = focused ? 'wallet' : 'wallet-outline';
+              return <Wallet size={size} color={color} />;
             } else if (route.name === 'Tasks') {
-              iconName = focused ? 'checkbox' : 'checkbox-outline';
+              return <CheckSquare size={size} color={color} />;
             } else {
-              iconName = focused ? 'calendar' : 'calendar-outline';
+              return <Calendar size={size} color={color} />;
             }
-
-            return <Ionicons name={iconName} size={size} color={color} />;
           },
           tabBarActiveTintColor: '#a0c4ff',
           tabBarInactiveTintColor: '#6b6b80',
