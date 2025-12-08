@@ -24,10 +24,11 @@ interface Task {
   completed: boolean;
 }
 
+// Pastel colors for dark mode
 const PRIORITIES: Priority[] = [
-  { id: 'low', label: 'Low', color: '#27AE60' },
-  { id: 'medium', label: 'Medium', color: '#F39C12' },
-  { id: 'high', label: 'High', color: '#E74C3C' },
+  { id: 'low', label: 'Low', color: '#7dd3a8' },
+  { id: 'medium', label: 'Medium', color: '#ffd6a5' },
+  { id: 'high', label: 'High', color: '#f5a0a0' },
 ];
 
 const INITIAL_TASKS: Task[] = [
@@ -93,28 +94,31 @@ export default function TasksScreen(): React.JSX.Element {
   const renderTask: ListRenderItem<Task> = ({ item }) => {
     const priorityInfo = getPriorityInfo(item.priority);
     return (
-      <View className="flex-row items-center bg-white rounded-xl p-4 mb-2 shadow-sm">
+      <View className="flex-row items-center rounded-xl p-4 mb-2" style={{ backgroundColor: '#1a1a2e' }}>
         <TouchableOpacity onPress={() => toggleTask(item.id)} className="mr-3">
           <Ionicons
             name={item.completed ? 'checkbox' : 'square-outline'}
             size={26}
-            color={item.completed ? '#27AE60' : '#CCC'}
+            color={item.completed ? '#7dd3a8' : '#6b6b80'}
           />
         </TouchableOpacity>
         <View className="flex-1">
-          <Text className={`text-base font-medium ${item.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+          <Text
+            className="text-base font-medium"
+            style={{ color: item.completed ? '#6b6b80' : '#e8e8e8', textDecorationLine: item.completed ? 'line-through' : 'none' }}
+          >
             {item.title}
           </Text>
           {item.description ? (
-            <Text className="text-sm text-gray-500 mt-1" numberOfLines={1}>
+            <Text style={{ color: '#a0a0b0' }} className="text-sm mt-1" numberOfLines={1}>
               {item.description}
             </Text>
           ) : null}
-          <View 
+          <View
             className="flex-row items-center self-start px-2.5 py-1 rounded-xl mt-2"
-            style={{ backgroundColor: priorityInfo.color + '20' }}
+            style={{ backgroundColor: priorityInfo.color + '25' }}
           >
-            <View 
+            <View
               className="w-1.5 h-1.5 rounded-full mr-1.5"
               style={{ backgroundColor: priorityInfo.color }}
             />
@@ -124,7 +128,7 @@ export default function TasksScreen(): React.JSX.Element {
           </View>
         </View>
         <TouchableOpacity onPress={() => deleteTask(item.id)} className="p-2">
-          <Ionicons name="trash-outline" size={20} color="#E74C3C" />
+          <Ionicons name="trash-outline" size={20} color="#f5a0a0" />
         </TouchableOpacity>
       </View>
     );
@@ -133,20 +137,20 @@ export default function TasksScreen(): React.JSX.Element {
   const filters: FilterType[] = ['all', 'pending', 'completed'];
 
   return (
-    <View className="flex-1 bg-gray-100">
+    <View className="flex-1" style={{ backgroundColor: '#0f0f1a' }}>
       {/* Stats */}
       <View className="flex-row p-4 gap-3">
-        <View className="flex-1 bg-white rounded-2xl p-4 items-center shadow-md">
-          <Text className="text-3xl font-bold text-gray-800">{tasks.length}</Text>
-          <Text className="text-xs text-gray-500 mt-1">Total</Text>
+        <View className="flex-1 rounded-2xl p-4 items-center" style={{ backgroundColor: '#1a1a2e' }}>
+          <Text style={{ color: '#a0c4ff' }} className="text-3xl font-bold">{tasks.length}</Text>
+          <Text style={{ color: '#a0a0b0' }} className="text-xs mt-1">Total</Text>
         </View>
-        <View className="flex-1 bg-white rounded-2xl p-4 items-center shadow-md">
-          <Text className="text-3xl font-bold text-green-600">{completedCount}</Text>
-          <Text className="text-xs text-gray-500 mt-1">Completed</Text>
+        <View className="flex-1 rounded-2xl p-4 items-center" style={{ backgroundColor: '#1a1a2e' }}>
+          <Text style={{ color: '#7dd3a8' }} className="text-3xl font-bold">{completedCount}</Text>
+          <Text style={{ color: '#a0a0b0' }} className="text-xs mt-1">Completed</Text>
         </View>
-        <View className="flex-1 bg-white rounded-2xl p-4 items-center shadow-md">
-          <Text className="text-3xl font-bold text-yellow-500">{pendingCount}</Text>
-          <Text className="text-xs text-gray-500 mt-1">Pending</Text>
+        <View className="flex-1 rounded-2xl p-4 items-center" style={{ backgroundColor: '#1a1a2e' }}>
+          <Text style={{ color: '#ffd6a5' }} className="text-3xl font-bold">{pendingCount}</Text>
+          <Text style={{ color: '#a0a0b0' }} className="text-xs mt-1">Pending</Text>
         </View>
       </View>
 
@@ -155,10 +159,14 @@ export default function TasksScreen(): React.JSX.Element {
         {filters.map(f => (
           <TouchableOpacity
             key={f}
-            className={`px-4 py-2 rounded-full ${filter === f ? 'bg-blue-500' : 'bg-white'}`}
+            className="px-4 py-2 rounded-full"
+            style={{ backgroundColor: filter === f ? '#a0c4ff' : '#1a1a2e' }}
             onPress={() => setFilter(f)}
           >
-            <Text className={`text-sm ${filter === f ? 'text-white font-semibold' : 'text-gray-600'}`}>
+            <Text
+              className="text-sm font-medium"
+              style={{ color: filter === f ? '#0f0f1a' : '#a0a0b0' }}
+            >
               {f.charAt(0).toUpperCase() + f.slice(1)}
             </Text>
           </TouchableOpacity>
@@ -174,56 +182,60 @@ export default function TasksScreen(): React.JSX.Element {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View className="items-center justify-center pt-16">
-            <Ionicons name="checkbox-outline" size={48} color="#CCC" />
-            <Text className="text-base text-gray-400 mt-3">No tasks found</Text>
+            <Ionicons name="checkbox-outline" size={48} color="#6b6b80" />
+            <Text style={{ color: '#6b6b80' }} className="text-base mt-3">No tasks found</Text>
           </View>
         }
       />
 
       {/* Add Button */}
       <TouchableOpacity
-        className="absolute right-5 bottom-5 w-14 h-14 rounded-full bg-blue-500 justify-center items-center shadow-lg"
+        className="absolute right-5 bottom-5 w-14 h-14 rounded-full justify-center items-center shadow-lg"
+        style={{ backgroundColor: '#a0c4ff' }}
         onPress={() => setModalVisible(true)}
       >
-        <Ionicons name="add" size={30} color="#fff" />
+        <Ionicons name="add" size={30} color="#0f0f1a" />
       </TouchableOpacity>
 
       {/* Add Task Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
-        <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl p-6">
-            <Text className="text-xl font-bold mb-5 text-center">New Task</Text>
+        <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+          <View className="rounded-t-3xl p-6" style={{ backgroundColor: '#1a1a2e' }}>
+            <Text style={{ color: '#e8e8e8' }} className="text-xl font-bold mb-5 text-center">New Task</Text>
 
             <TextInput
-              className="bg-gray-100 rounded-xl p-4 text-base mb-3"
+              className="rounded-xl p-4 text-base mb-3"
+              style={{ backgroundColor: '#252540', color: '#e8e8e8' }}
               placeholder="Task title"
+              placeholderTextColor="#6b6b80"
               value={title}
               onChangeText={setTitle}
             />
 
             <TextInput
-              className="bg-gray-100 rounded-xl p-4 text-base mb-3 min-h-[80px]"
+              className="rounded-xl p-4 text-base mb-3 min-h-[80px]"
+              style={{ backgroundColor: '#252540', color: '#e8e8e8', textAlignVertical: 'top' }}
               placeholder="Description (optional)"
+              placeholderTextColor="#6b6b80"
               value={description}
               onChangeText={setDescription}
               multiline
               numberOfLines={3}
-              style={{ textAlignVertical: 'top' }}
             />
 
             {/* Priority Selection */}
-            <Text className="text-sm font-medium text-gray-600 mb-2">Priority</Text>
+            <Text style={{ color: '#a0a0b0' }} className="text-sm font-medium mb-2">Priority</Text>
             <View className="flex-row gap-3 mb-5">
               {PRIORITIES.map(p => (
                 <TouchableOpacity
                   key={p.id}
                   className="flex-1 py-3 rounded-xl items-center"
-                  style={{ backgroundColor: priority === p.id ? p.color : '#F5F6FA' }}
+                  style={{ backgroundColor: priority === p.id ? p.color : '#252540' }}
                   onPress={() => setPriority(p.id)}
                 >
                   <Text
                     className="text-sm font-medium"
-                    style={{ color: priority === p.id ? '#fff' : '#666' }}
+                    style={{ color: priority === p.id ? '#0f0f1a' : '#a0a0b0' }}
                   >
                     {p.label}
                   </Text>
@@ -233,16 +245,18 @@ export default function TasksScreen(): React.JSX.Element {
 
             <View className="flex-row gap-3">
               <TouchableOpacity
-                className="flex-1 p-4 rounded-xl bg-gray-100 items-center"
+                className="flex-1 p-4 rounded-xl items-center"
+                style={{ backgroundColor: '#252540' }}
                 onPress={() => setModalVisible(false)}
               >
-                <Text className="text-base font-semibold text-gray-600">Cancel</Text>
+                <Text style={{ color: '#a0a0b0' }} className="text-base font-semibold">Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className="flex-1 p-4 rounded-xl bg-blue-500 items-center"
+                className="flex-1 p-4 rounded-xl items-center"
+                style={{ backgroundColor: '#a0c4ff' }}
                 onPress={addTask}
               >
-                <Text className="text-base font-semibold text-white">Add Task</Text>
+                <Text style={{ color: '#0f0f1a' }} className="text-base font-semibold">Add Task</Text>
               </TouchableOpacity>
             </View>
           </View>

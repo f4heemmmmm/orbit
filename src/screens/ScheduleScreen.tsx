@@ -27,11 +27,12 @@ interface ScheduleEvent {
   description: string;
 }
 
+// Pastel colors for dark mode
 const EVENT_TYPES: EventType[] = [
-  { id: 'activity', label: 'Activity', icon: 'fitness', color: '#9B59B6' },
-  { id: 'exam', label: 'Exam', icon: 'document-text', color: '#E74C3C' },
-  { id: 'class', label: 'Class', icon: 'school', color: '#3498DB' },
-  { id: 'other', label: 'Other', icon: 'ellipsis-horizontal', color: '#95A5A6' },
+  { id: 'activity', label: 'Activity', icon: 'fitness', color: '#bdb2ff' },
+  { id: 'exam', label: 'Exam', icon: 'document-text', color: '#f5a0a0' },
+  { id: 'class', label: 'Class', icon: 'school', color: '#a0c4ff' },
+  { id: 'other', label: 'Other', icon: 'ellipsis-horizontal', color: '#9bf6e3' },
 ];
 
 const INITIAL_EVENTS: ScheduleEvent[] = [
@@ -114,29 +115,29 @@ export default function ScheduleScreen(): React.JSX.Element {
     return (
       <View key={item.id} className="flex-row mb-3">
         <View className="w-12 pt-3">
-          <Text className="text-sm font-semibold text-gray-600">{item.time}</Text>
+          <Text style={{ color: '#a0a0b0' }} className="text-sm font-semibold">{item.time}</Text>
         </View>
-        <View 
-          className="flex-1 bg-white rounded-xl p-3.5 shadow-sm"
-          style={{ borderLeftWidth: 4, borderLeftColor: typeInfo.color }}
+        <View
+          className="flex-1 rounded-xl p-3.5"
+          style={{ backgroundColor: '#1a1a2e', borderLeftWidth: 4, borderLeftColor: typeInfo.color }}
         >
           <View className="flex-row items-center">
-            <View 
+            <View
               className="w-9 h-9 rounded-full justify-center items-center"
-              style={{ backgroundColor: typeInfo.color + '20' }}
+              style={{ backgroundColor: typeInfo.color + '25' }}
             >
               <Ionicons name={typeInfo.icon} size={18} color={typeInfo.color} />
             </View>
             <View className="flex-1 ml-3">
-              <Text className="text-base font-medium text-gray-800">{item.title}</Text>
-              <Text className="text-xs text-gray-500 mt-0.5">{typeInfo.label}</Text>
+              <Text style={{ color: '#e8e8e8' }} className="text-base font-medium">{item.title}</Text>
+              <Text style={{ color: '#a0a0b0' }} className="text-xs mt-0.5">{typeInfo.label}</Text>
             </View>
             <TouchableOpacity onPress={() => deleteEvent(item.id)} className="p-1">
-              <Ionicons name="close-circle" size={22} color="#CCC" />
+              <Ionicons name="close-circle" size={22} color="#6b6b80" />
             </TouchableOpacity>
           </View>
           {item.description ? (
-            <Text className="text-sm text-gray-600 mt-2 ml-12">{item.description}</Text>
+            <Text style={{ color: '#a0a0b0' }} className="text-sm mt-2 ml-12">{item.description}</Text>
           ) : null}
         </View>
       </View>
@@ -149,19 +150,19 @@ export default function ScheduleScreen(): React.JSX.Element {
   }, {});
 
   return (
-    <View className="flex-1 bg-gray-100">
+    <View className="flex-1" style={{ backgroundColor: '#0f0f1a' }}>
       {/* Type Stats */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="max-h-24">
         <View className="flex-row p-4 gap-3">
           {EVENT_TYPES.map(type => (
             <View
               key={type.id}
-              className="bg-white rounded-2xl p-4 items-center min-w-[80px] shadow-md"
-              style={{ borderWidth: 2, borderColor: type.color }}
+              className="rounded-2xl p-4 items-center min-w-[80px]"
+              style={{ backgroundColor: '#1a1a2e', borderWidth: 2, borderColor: type.color }}
             >
               <Ionicons name={type.icon} size={24} color={type.color} />
-              <Text className="text-xl font-bold text-gray-800 mt-1">{typeCounts[type.id]}</Text>
-              <Text className="text-xs text-gray-500 mt-0.5">{type.label}</Text>
+              <Text style={{ color: '#e8e8e8' }} className="text-xl font-bold mt-1">{typeCounts[type.id]}</Text>
+              <Text style={{ color: '#a0a0b0' }} className="text-xs mt-0.5">{type.label}</Text>
             </View>
           ))}
         </View>
@@ -171,10 +172,14 @@ export default function ScheduleScreen(): React.JSX.Element {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="max-h-12 mb-2">
         <View className="flex-row px-4 gap-2">
           <TouchableOpacity
-            className={`px-4 py-2 rounded-full ${filterType === 'all' ? 'bg-blue-500' : 'bg-white'}`}
+            className="px-4 py-2 rounded-full"
+            style={{ backgroundColor: filterType === 'all' ? '#a0c4ff' : '#1a1a2e' }}
             onPress={() => setFilterType('all')}
           >
-            <Text className={`text-sm ${filterType === 'all' ? 'text-white font-semibold' : 'text-gray-600'}`}>
+            <Text
+              className="text-sm font-medium"
+              style={{ color: filterType === 'all' ? '#0f0f1a' : '#a0a0b0' }}
+            >
               All
             </Text>
           </TouchableOpacity>
@@ -182,10 +187,13 @@ export default function ScheduleScreen(): React.JSX.Element {
             <TouchableOpacity
               key={type.id}
               className="px-4 py-2 rounded-full"
-              style={{ backgroundColor: filterType === type.id ? type.color : '#fff' }}
+              style={{ backgroundColor: filterType === type.id ? type.color : '#1a1a2e' }}
               onPress={() => setFilterType(type.id)}
             >
-              <Text className={`text-sm ${filterType === type.id ? 'text-white font-semibold' : 'text-gray-600'}`}>
+              <Text
+                className="text-sm font-medium"
+                style={{ color: filterType === type.id ? '#0f0f1a' : '#a0a0b0' }}
+              >
                 {type.label}
               </Text>
             </TouchableOpacity>
@@ -197,13 +205,13 @@ export default function ScheduleScreen(): React.JSX.Element {
       <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
         {sortedDates.length === 0 ? (
           <View className="items-center justify-center pt-16">
-            <Ionicons name="calendar-outline" size={48} color="#CCC" />
-            <Text className="text-base text-gray-400 mt-3">No events scheduled</Text>
+            <Ionicons name="calendar-outline" size={48} color="#6b6b80" />
+            <Text style={{ color: '#6b6b80' }} className="text-base mt-3">No events scheduled</Text>
           </View>
         ) : (
           sortedDates.map(dateKey => (
             <View key={dateKey} className="mb-5">
-              <Text className="text-base font-semibold text-gray-800 mb-3">{formatDate(dateKey)}</Text>
+              <Text style={{ color: '#e8e8e8' }} className="text-base font-semibold mb-3">{formatDate(dateKey)}</Text>
               {groupedEvents[dateKey].map(event => renderEvent(event))}
             </View>
           ))
@@ -213,65 +221,74 @@ export default function ScheduleScreen(): React.JSX.Element {
 
       {/* Add Button */}
       <TouchableOpacity
-        className="absolute right-5 bottom-5 w-14 h-14 rounded-full bg-blue-500 justify-center items-center shadow-lg"
+        className="absolute right-5 bottom-5 w-14 h-14 rounded-full justify-center items-center shadow-lg"
+        style={{ backgroundColor: '#a0c4ff' }}
         onPress={() => setModalVisible(true)}
       >
-        <Ionicons name="add" size={30} color="#fff" />
+        <Ionicons name="add" size={30} color="#0f0f1a" />
       </TouchableOpacity>
 
       {/* Add Event Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
-        <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl p-6 max-h-[85%]">
-            <Text className="text-xl font-bold mb-5 text-center">New Event</Text>
+        <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+          <View className="rounded-t-3xl p-6 max-h-[85%]" style={{ backgroundColor: '#1a1a2e' }}>
+            <Text style={{ color: '#e8e8e8' }} className="text-xl font-bold mb-5 text-center">New Event</Text>
 
             <TextInput
-              className="bg-gray-100 rounded-xl p-4 text-base mb-3"
+              className="rounded-xl p-4 text-base mb-3"
+              style={{ backgroundColor: '#252540', color: '#e8e8e8' }}
               placeholder="Event title"
+              placeholderTextColor="#6b6b80"
               value={title}
               onChangeText={setTitle}
             />
 
             <TextInput
-              className="bg-gray-100 rounded-xl p-4 text-base mb-3"
+              className="rounded-xl p-4 text-base mb-3"
+              style={{ backgroundColor: '#252540', color: '#e8e8e8' }}
               placeholder="Description (optional)"
+              placeholderTextColor="#6b6b80"
               value={description}
               onChangeText={setDescription}
             />
 
             <View className="flex-row gap-3">
               <TextInput
-                className="flex-1 bg-gray-100 rounded-xl p-4 text-base mb-3"
+                className="flex-1 rounded-xl p-4 text-base mb-3"
+                style={{ backgroundColor: '#252540', color: '#e8e8e8' }}
                 placeholder="Date (YYYY-MM-DD)"
+                placeholderTextColor="#6b6b80"
                 value={date}
                 onChangeText={setDate}
               />
               <TextInput
-                className="flex-1 bg-gray-100 rounded-xl p-4 text-base mb-3"
+                className="flex-1 rounded-xl p-4 text-base mb-3"
+                style={{ backgroundColor: '#252540', color: '#e8e8e8' }}
                 placeholder="Time (HH:MM)"
+                placeholderTextColor="#6b6b80"
                 value={time}
                 onChangeText={setTime}
               />
             </View>
 
             {/* Type Selection */}
-            <Text className="text-sm font-medium text-gray-600 mb-2">Event Type</Text>
+            <Text style={{ color: '#a0a0b0' }} className="text-sm font-medium mb-2">Event Type</Text>
             <View className="flex-row flex-wrap gap-2.5 mb-5">
               {EVENT_TYPES.map(type => (
                 <TouchableOpacity
                   key={type.id}
                   className="flex-row items-center px-3.5 py-2.5 rounded-xl"
-                  style={{ backgroundColor: selectedType === type.id ? type.color : '#F5F6FA' }}
+                  style={{ backgroundColor: selectedType === type.id ? type.color : '#252540' }}
                   onPress={() => setSelectedType(type.id)}
                 >
                   <Ionicons
                     name={type.icon}
                     size={20}
-                    color={selectedType === type.id ? '#fff' : type.color}
+                    color={selectedType === type.id ? '#0f0f1a' : type.color}
                   />
                   <Text
                     className="text-sm font-medium ml-1.5"
-                    style={{ color: selectedType === type.id ? '#fff' : '#666' }}
+                    style={{ color: selectedType === type.id ? '#0f0f1a' : '#a0a0b0' }}
                   >
                     {type.label}
                   </Text>
@@ -281,16 +298,18 @@ export default function ScheduleScreen(): React.JSX.Element {
 
             <View className="flex-row gap-3">
               <TouchableOpacity
-                className="flex-1 p-4 rounded-xl bg-gray-100 items-center"
+                className="flex-1 p-4 rounded-xl items-center"
+                style={{ backgroundColor: '#252540' }}
                 onPress={() => setModalVisible(false)}
               >
-                <Text className="text-base font-semibold text-gray-600">Cancel</Text>
+                <Text style={{ color: '#a0a0b0' }} className="text-base font-semibold">Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className="flex-1 p-4 rounded-xl bg-blue-500 items-center"
+                className="flex-1 p-4 rounded-xl items-center"
+                style={{ backgroundColor: '#a0c4ff' }}
                 onPress={addEvent}
               >
-                <Text className="text-base font-semibold text-white">Add Event</Text>
+                <Text style={{ color: '#0f0f1a' }} className="text-base font-semibold">Add Event</Text>
               </TouchableOpacity>
             </View>
           </View>

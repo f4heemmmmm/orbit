@@ -23,7 +23,7 @@ type IconName = 'wallet' | 'wallet-outline' | 'checkbox' | 'checkbox-outline' | 
 export default function App(): React.JSX.Element {
   return (
     <NavigationContainer>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       <Tab.Navigator
         screenOptions={({ route }) => ({
           tabBarIcon: ({ focused, color, size }) => {
@@ -39,11 +39,16 @@ export default function App(): React.JSX.Element {
 
             return <Ionicons name={iconName} size={size} color={color} />;
           },
-          tabBarActiveTintColor: '#007AFF',
-          tabBarInactiveTintColor: 'gray',
-          headerStyle: {
-            backgroundColor: '#fff',
+          tabBarActiveTintColor: '#a0c4ff',
+          tabBarInactiveTintColor: '#6b6b80',
+          tabBarStyle: {
+            backgroundColor: '#1a1a2e',
+            borderTopColor: '#252540',
           },
+          headerStyle: {
+            backgroundColor: '#1a1a2e',
+          },
+          headerTintColor: '#e8e8e8',
           headerTitleStyle: {
             fontWeight: 'bold',
           },
