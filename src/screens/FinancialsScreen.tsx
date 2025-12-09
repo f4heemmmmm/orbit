@@ -1,30 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { Plus, Wallet } from 'lucide-react-native';
 import AddTransactionModal from '../components/AddTransactionModal';
 import { Transaction, TransactionData, Category } from '../types';
 import { TRANSACTION_CATEGORIES } from '../constants/categories';
 import { COLORS } from '../constants/theme';
-import { getDateString, formatRelativeDate } from '../utils/dateUtils';
-
-const INITIAL_TRANSACTIONS: Transaction[] = [
-  { id: '1', title: 'Coffee', description: 'Morning latte at Starbucks', amount: 5.50, type: 'expense', category: 'Food', date: getDateString(0) },
-  { id: '2', title: 'Grocery Shopping', description: 'Weekly groceries from Whole Foods', amount: 150, type: 'expense', category: 'Food', date: getDateString(0) },
-  { id: '3', title: 'Uber Ride', description: 'Trip to downtown', amount: 25, type: 'expense', category: 'Transport', date: getDateString(1) },
-  { id: '4', title: 'Freelance Payment', description: 'Website design project', amount: 800, type: 'income', category: 'Salary', date: getDateString(1) },
-  { id: '5', title: 'Electric Bill', description: 'December electricity', amount: 80, type: 'expense', category: 'Bills', date: getDateString(3) },
-  { id: '6', title: 'Monthly Salary', description: 'December salary', amount: 5000, type: 'income', category: 'Salary', date: getDateString(5) },
-  { id: '7', title: 'Movie Tickets', description: 'Avatar 3 with friends', amount: 30, type: 'expense', category: 'Entertainment', date: getDateString(8) },
-];
+import { formatRelativeDate } from '../utils/dateUtils';
+import { getTransactions, createTransaction } from '../services/transactionService';
 
 export default function FinancialsScreen(): React.JSX.Element {
-  const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Fetch transactions on mount
+  useEffect(() => {
+    loadTransactions();
+  }, []);
+
+  const loadTransactions = async (): Promise<void> => {
+    try {
+      setLoading(true);
+      const data = await getTransactions();
+
+      // Convert database format to app format
+      const formattedTransactions: Transaction[] = data.map(t => ({
+        id: t.id,
+        title: t.title,
+        description: t.description || '',
+        amount: Number(t.amount),
+        type: t.type,
+        category: t.category,
+        date: new Date(t.date).toISOString().split('T')[0],
+      }));
+
+      setTransactions(formattedTransactions);
+    } catch (error) {
+      console.error('Error loading transactions:', error);
+      Alert.alert('Error', 'Failed to load transactions. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const totalIncome = transactions
     .filter(t => t.type === 'income')
@@ -36,18 +61,37 @@ export default function FinancialsScreen(): React.JSX.Element {
 
   const balance = totalIncome - totalExpenses;
 
-  const handleAddTransaction = (data: TransactionData): void => {
-    const newTransaction: Transaction = {
-      id: Date.now().toString(),
-      title: data.title,
-      description: data.description,
-      amount: data.amount,
-      type: data.type,
-      category: data.category,
-      date: data.date.toISOString().split('T')[0],
-    };
-    setTransactions([newTransaction, ...transactions]);
-    setModalVisible(false);
+  const handleAddTransaction = async (data: TransactionData): Promise<void> => {
+    try {
+      const newTransaction = await createTransaction({
+        title: data.title,
+        description: data.description,
+        amount: data.amount,
+        type: data.type,
+        category: data.category,
+        date: data.date.toISOString(),
+      });
+
+      if (newTransaction) {
+        // Add to local state immediately for better UX
+        const formattedTransaction: Transaction = {
+          id: newTransaction.id,
+          title: newTransaction.title,
+          description: newTransaction.description || '',
+          amount: Number(newTransaction.amount),
+          type: newTransaction.type,
+          category: newTransaction.category,
+          date: new Date(newTransaction.date).toISOString().split('T')[0],
+        };
+        setTransactions([formattedTransaction, ...transactions]);
+        setModalVisible(false);
+      } else {
+        Alert.alert('Error', 'Failed to add transaction. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error adding transaction:', error);
+      Alert.alert('Error', 'Failed to add transaction. Please try again.');
+    }
   };
 
   const getCategoryInfo = (categoryName: string): Category => {
@@ -116,10 +160,16 @@ export default function FinancialsScreen(): React.JSX.Element {
       </View>
 
       <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
-        {sortedDates.length === 0 ? (
+        {loading ? (
+          <View className="items-center justify-center pt-16">
+            <ActivityIndicator size="large" color={COLORS.pastel.blue} />
+            <Text style={{ color: COLORS.text.muted }} className="text-base mt-3">Loading transactions...</Text>
+          </View>
+        ) : sortedDates.length === 0 ? (
           <View className="items-center justify-center pt-16">
             <Wallet size={48} color={COLORS.text.muted} />
             <Text style={{ color: COLORS.text.muted }} className="text-base mt-3">No transactions yet</Text>
+            <Text style={{ color: COLORS.text.muted }} className="text-sm mt-1">Tap + to add your first transaction</Text>
           </View>
         ) : (
           sortedDates.map(dateKey => (

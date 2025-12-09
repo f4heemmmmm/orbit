@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,8 +7,11 @@ import {
   Modal,
   FlatList,
   ListRenderItem,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { CheckSquare, Square, Trash2, Plus } from 'lucide-react-native';
+import { getTasks, createTask, toggleTaskCompletion, deleteTask as deleteTaskService } from '../services/taskService';
 
 interface Priority {
   id: 'low' | 'medium' | 'high';
@@ -31,51 +34,125 @@ const PRIORITIES: Priority[] = [
   { id: 'high', label: 'High', color: '#f5a0a0' },
 ];
 
-const INITIAL_TASKS: Task[] = [
-  { id: '1', title: 'Complete project proposal', description: 'Write and submit the Q1 project proposal', priority: 'high', completed: false },
-  { id: '2', title: 'Review code changes', description: 'Review PRs from the team', priority: 'medium', completed: true },
-  { id: '3', title: 'Update documentation', description: 'Update API docs with new endpoints', priority: 'low', completed: false },
-  { id: '4', title: 'Team standup', description: 'Daily standup meeting at 9 AM', priority: 'medium', completed: true },
-  { id: '5', title: 'Fix login bug', description: 'Users cannot login with special characters', priority: 'high', completed: false },
-  { id: '6', title: 'Organize files', description: 'Clean up project folder structure', priority: 'low', completed: false },
-];
-
 type FilterType = 'all' | 'pending' | 'completed';
 
 export default function TasksScreen(): React.JSX.Element {
-  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [filter, setFilter] = useState<FilterType>('all');
+  const [loading, setLoading] = useState(true);
 
-  const toggleTask = (id: string): void => {
-    setTasks(tasks.map(task =>
-      task.id === id ? { ...task, completed: !task.completed } : task
-    ));
+  // Fetch tasks on mount
+  useEffect(() => {
+    loadTasks();
+  }, []);
+
+  const loadTasks = async (): Promise<void> => {
+    try {
+      setLoading(true);
+      const data = await getTasks();
+
+      // Convert database format to app format
+      const formattedTasks: Task[] = data.map(t => ({
+        id: t.id,
+        title: t.title,
+        description: t.description || '',
+        priority: t.priority,
+        completed: t.completed,
+      }));
+
+      setTasks(formattedTasks);
+    } catch (error) {
+      console.error('Error loading tasks:', error);
+      Alert.alert('Error', 'Failed to load tasks. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const addTask = (): void => {
+  const toggleTask = async (id: string): Promise<void> => {
+    try {
+      // Optimistically update UI
+      setTasks(tasks.map(task =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      ));
+
+      // Update in database
+      const updatedTask = await toggleTaskCompletion(id);
+
+      if (!updatedTask) {
+        // Revert on failure
+        setTasks(tasks.map(task =>
+          task.id === id ? { ...task, completed: !task.completed } : task
+        ));
+        Alert.alert('Error', 'Failed to update task. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error toggling task:', error);
+      // Revert on error
+      setTasks(tasks.map(task =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      ));
+      Alert.alert('Error', 'Failed to update task. Please try again.');
+    }
+  };
+
+  const addTask = async (): Promise<void> => {
     if (!title.trim()) return;
-    
-    const newTask: Task = {
-      id: Date.now().toString(),
-      title: title.trim(),
-      description: description.trim(),
-      priority,
-      completed: false,
-    };
-    
-    setTasks([newTask, ...tasks]);
-    setTitle('');
-    setDescription('');
-    setPriority('medium');
-    setModalVisible(false);
+
+    try {
+      const newTask = await createTask({
+        title: title.trim(),
+        description: description.trim(),
+        priority,
+        completed: false,
+      });
+
+      if (newTask) {
+        // Add to local state
+        const formattedTask: Task = {
+          id: newTask.id,
+          title: newTask.title,
+          description: newTask.description || '',
+          priority: newTask.priority,
+          completed: newTask.completed,
+        };
+
+        setTasks([formattedTask, ...tasks]);
+        setTitle('');
+        setDescription('');
+        setPriority('medium');
+        setModalVisible(false);
+      } else {
+        Alert.alert('Error', 'Failed to add task. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error adding task:', error);
+      Alert.alert('Error', 'Failed to add task. Please try again.');
+    }
   };
 
-  const deleteTask = (id: string): void => {
-    setTasks(tasks.filter(task => task.id !== id));
+  const deleteTask = async (id: string): Promise<void> => {
+    try {
+      // Optimistically update UI
+      const previousTasks = [...tasks];
+      setTasks(tasks.filter(task => task.id !== id));
+
+      // Delete from database
+      const success = await deleteTaskService(id);
+
+      if (!success) {
+        // Revert on failure
+        setTasks(previousTasks);
+        Alert.alert('Error', 'Failed to delete task. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      Alert.alert('Error', 'Failed to delete task. Please try again.');
+    }
   };
 
   const getPriorityInfo = (priorityId: string): Priority => {
@@ -174,19 +251,27 @@ export default function TasksScreen(): React.JSX.Element {
       </View>
 
       {/* Tasks List */}
-      <FlatList
-        data={filteredTasks}
-        renderItem={renderTask}
-        keyExtractor={item => item.id}
-        className="flex-1 px-4"
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View className="items-center justify-center pt-16">
-            <CheckSquare size={48} color="#6b6b80" />
-            <Text style={{ color: '#6b6b80' }} className="text-base mt-3">No tasks found</Text>
-          </View>
-        }
-      />
+      {loading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#a0c4ff" />
+          <Text style={{ color: '#6b6b80' }} className="text-base mt-3">Loading tasks...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredTasks}
+          renderItem={renderTask}
+          keyExtractor={item => item.id}
+          className="flex-1 px-4"
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View className="items-center justify-center pt-16">
+              <CheckSquare size={48} color="#6b6b80" />
+              <Text style={{ color: '#6b6b80' }} className="text-base mt-3">No tasks found</Text>
+              <Text style={{ color: '#6b6b80' }} className="text-sm mt-1">Tap + to add your first task</Text>
+            </View>
+          }
+        />
+      )}
 
       {/* Add Button */}
       <TouchableOpacity

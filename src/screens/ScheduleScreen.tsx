@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   TextInput,
   Modal,
   ScrollView,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import {
   Dumbbell,
@@ -17,6 +19,7 @@ import {
   Calendar,
   LucideIcon,
 } from 'lucide-react-native';
+import { getScheduleEvents, createScheduleEvent, deleteScheduleEvent } from '../services/scheduleService';
 
 interface EventType {
   id: 'activity' | 'exam' | 'class' | 'other';
@@ -42,21 +45,10 @@ const EVENT_TYPES: EventType[] = [
   { id: 'other', label: 'Other', icon: MoreHorizontal, color: '#9bf6e3' },
 ];
 
-const INITIAL_EVENTS: ScheduleEvent[] = [
-  { id: '1', title: 'Morning Yoga', type: 'activity', date: '2024-01-15', time: '07:00', description: 'Daily yoga session' },
-  { id: '2', title: 'Math Final Exam', type: 'exam', date: '2024-01-15', time: '09:00', description: 'Chapter 1-10' },
-  { id: '3', title: 'Physics Lecture', type: 'class', date: '2024-01-15', time: '11:00', description: 'Quantum mechanics intro' },
-  { id: '4', title: 'Team Meeting', type: 'other', date: '2024-01-15', time: '14:00', description: 'Weekly sync' },
-  { id: '5', title: 'Chemistry Lab', type: 'class', date: '2024-01-16', time: '10:00', description: 'Organic chemistry' },
-  { id: '6', title: 'Basketball Practice', type: 'activity', date: '2024-01-16', time: '16:00', description: 'Team practice' },
-  { id: '7', title: 'History Quiz', type: 'exam', date: '2024-01-17', time: '13:00', description: 'World War II' },
-  { id: '8', title: 'Doctor Appointment', type: 'other', date: '2024-01-17', time: '15:30', description: 'Annual checkup' },
-];
-
 type FilterType = 'all' | 'activity' | 'exam' | 'class' | 'other';
 
 export default function ScheduleScreen(): React.JSX.Element {
-  const [events, setEvents] = useState<ScheduleEvent[]>(INITIAL_EVENTS);
+  const [events, setEvents] = useState<ScheduleEvent[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -64,33 +56,100 @@ export default function ScheduleScreen(): React.JSX.Element {
   const [time, setTime] = useState('');
   const [selectedType, setSelectedType] = useState<'activity' | 'exam' | 'class' | 'other'>('other');
   const [filterType, setFilterType] = useState<FilterType>('all');
+  const [loading, setLoading] = useState(true);
 
-  const addEvent = (): void => {
-    if (!title.trim() || !date.trim() || !time.trim()) return;
-    
-    const newEvent: ScheduleEvent = {
-      id: Date.now().toString(),
-      title: title.trim(),
-      description: description.trim(),
-      type: selectedType,
-      date: date.trim(),
-      time: time.trim(),
-    };
-    
-    setEvents([...events, newEvent].sort((a, b) => {
-      if (a.date !== b.date) return a.date.localeCompare(b.date);
-      return a.time.localeCompare(b.time);
-    }));
-    setTitle('');
-    setDescription('');
-    setDate('');
-    setTime('');
-    setSelectedType('other');
-    setModalVisible(false);
+  // Fetch events on mount
+  useEffect(() => {
+    loadEvents();
+  }, []);
+
+  const loadEvents = async (): Promise<void> => {
+    try {
+      setLoading(true);
+      const data = await getScheduleEvents();
+
+      // Convert database format to app format
+      const formattedEvents: ScheduleEvent[] = data.map(e => ({
+        id: e.id,
+        title: e.title,
+        description: e.description || '',
+        type: e.type,
+        date: e.date,
+        time: e.time,
+      }));
+
+      setEvents(formattedEvents);
+    } catch (error) {
+      console.error('Error loading events:', error);
+      Alert.alert('Error', 'Failed to load events. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const deleteEvent = (id: string): void => {
-    setEvents(events.filter(event => event.id !== id));
+  const addEvent = async (): Promise<void> => {
+    if (!title.trim() || !date.trim() || !time.trim()) return;
+
+    try {
+      const newEvent = await createScheduleEvent({
+        title: title.trim(),
+        description: description.trim(),
+        type: selectedType,
+        date: date.trim(),
+        time: time.trim(),
+      });
+
+      if (newEvent) {
+        // Add to local state
+        const formattedEvent: ScheduleEvent = {
+          id: newEvent.id,
+          title: newEvent.title,
+          description: newEvent.description || '',
+          type: newEvent.type,
+          date: newEvent.date,
+          time: newEvent.time,
+        };
+
+        // Add and sort events
+        const updatedEvents = [...events, formattedEvent].sort((a, b) => {
+          if (a.date !== b.date) return a.date.localeCompare(b.date);
+          return a.time.localeCompare(b.time);
+        });
+
+        setEvents(updatedEvents);
+        setTitle('');
+        setDescription('');
+        setDate('');
+        setTime('');
+        setSelectedType('other');
+        setModalVisible(false);
+      } else {
+        Alert.alert('Error', 'Failed to add event. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error adding event:', error);
+      Alert.alert('Error', 'Failed to add event. Please try again.');
+    }
+  };
+
+  const deleteEvent = async (id: string): Promise<void> => {
+    try {
+      // Optimistically update UI
+      const previousEvents = [...events];
+      setEvents(events.filter(event => event.id !== id));
+
+      // Delete from database
+      const success = await deleteScheduleEvent(id);
+
+      if (!success) {
+        // Revert on failure
+        setEvents(previousEvents);
+        Alert.alert('Error', 'Failed to delete event. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      Alert.alert('Error', 'Failed to delete event. Please try again.');
+    }
   };
 
   const getTypeInfo = (typeId: string): EventType => {
@@ -213,22 +272,30 @@ export default function ScheduleScreen(): React.JSX.Element {
       </ScrollView>
 
       {/* Events List */}
-      <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
-        {sortedDates.length === 0 ? (
-          <View className="items-center justify-center pt-16">
-            <Calendar size={48} color="#6b6b80" />
-            <Text style={{ color: '#6b6b80' }} className="text-base mt-3">No events scheduled</Text>
-          </View>
-        ) : (
-          sortedDates.map(dateKey => (
-            <View key={dateKey} className="mb-5">
-              <Text style={{ color: '#e8e8e8' }} className="text-base font-semibold mb-3">{formatDate(dateKey)}</Text>
-              {groupedEvents[dateKey].map(event => renderEvent(event))}
+      {loading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#a0c4ff" />
+          <Text style={{ color: '#6b6b80' }} className="text-base mt-3">Loading events...</Text>
+        </View>
+      ) : (
+        <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
+          {sortedDates.length === 0 ? (
+            <View className="items-center justify-center pt-16">
+              <Calendar size={48} color="#6b6b80" />
+              <Text style={{ color: '#6b6b80' }} className="text-base mt-3">No events scheduled</Text>
+              <Text style={{ color: '#6b6b80' }} className="text-sm mt-1">Tap + to add your first event</Text>
             </View>
-          ))
-        )}
-        <View className="h-20" />
-      </ScrollView>
+          ) : (
+            sortedDates.map(dateKey => (
+              <View key={dateKey} className="mb-5">
+                <Text style={{ color: '#e8e8e8' }} className="text-base font-semibold mb-3">{formatDate(dateKey)}</Text>
+                {groupedEvents[dateKey].map(event => renderEvent(event))}
+              </View>
+            ))
+          )}
+          <View className="h-20" />
+        </ScrollView>
+      )}
 
       {/* Add Button */}
       <TouchableOpacity
