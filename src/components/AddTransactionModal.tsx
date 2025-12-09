@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { X, Calendar } from 'lucide-react-native';
-import { TransactionData } from '../types';
+import { TransactionData, TransactionCategory } from '../types';
 import { TRANSACTION_CATEGORIES } from '../constants/categories';
 import { COLORS } from '../constants/theme';
 import { formatDateTime } from '../utils/dateUtils';
@@ -32,7 +32,7 @@ export default function AddTransactionModal({
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [type, setType] = useState<'income' | 'expense'>('expense');
-  const [selectedCategory, setSelectedCategory] = useState('Other');
+  const [selectedCategory, setSelectedCategory] = useState<TransactionCategory>('Other');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -193,11 +193,11 @@ export default function AddTransactionModal({
                       <TouchableOpacity
                         key={cat.id}
                         className="flex-row items-center px-4 py-2.5 rounded-full"
-                        style={{ backgroundColor: selectedCategory === cat.name ? cat.color : COLORS.surface }}
-                        onPress={() => setSelectedCategory(cat.name)}
+                        style={{ backgroundColor: selectedCategory === cat.id ? cat.color : COLORS.surface }}
+                        onPress={() => setSelectedCategory(cat.id)}
                       >
-                        <CatIcon size={20} color={selectedCategory === cat.name ? COLORS.background : cat.color} />
-                        <Text className="text-sm ml-1.5" style={{ color: selectedCategory === cat.name ? COLORS.background : COLORS.text.secondary }}>
+                        <CatIcon size={20} color={selectedCategory === cat.id ? COLORS.background : cat.color} />
+                        <Text className="text-sm ml-1.5" style={{ color: selectedCategory === cat.id ? COLORS.background : COLORS.text.secondary }}>
                           {cat.name}
                         </Text>
                       </TouchableOpacity>

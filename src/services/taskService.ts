@@ -5,7 +5,7 @@
 
 import { supabase } from '../lib/supabase';
 import { getCurrentUserId } from './authService';
-import { Database } from '../../../orbit-backend/supabase/types/database.types';
+import { Database } from '../types/database';
 
 type TaskRow = Database['public']['Tables']['tasks']['Row'];
 type TaskInsert = Database['public']['Tables']['tasks']['Insert'];

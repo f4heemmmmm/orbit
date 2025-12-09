@@ -42,7 +42,8 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps): React.JS
       if (isSignUp) {
         const { data, error } = await signUp(email.trim(), password, fullName.trim());
         if (error) {
-          Alert.alert('Sign Up Failed', error.message || 'Please try again');
+          const errorMessage = error instanceof Error ? error.message : 'Please try again';
+          Alert.alert('Sign Up Failed', errorMessage);
           return;
         }
         Alert.alert(
@@ -53,7 +54,8 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps): React.JS
       } else {
         const { data, error } = await signIn(email.trim(), password);
         if (error) {
-          Alert.alert('Sign In Failed', error.message || 'Please check your credentials');
+          const errorMessage = error instanceof Error ? error.message : 'Please check your credentials';
+          Alert.alert('Sign In Failed', errorMessage);
           return;
         }
         onAuthSuccess();

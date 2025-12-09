@@ -18,14 +18,14 @@ import { COLORS } from './theme';
  * Transaction categories with icons and colors
  */
 export const TRANSACTION_CATEGORIES: Category[] = [
-  { id: '1', name: 'Food', icon: UtensilsCrossed, color: COLORS.category.food },
-  { id: '2', name: 'Transport', icon: Car, color: COLORS.category.transport },
-  { id: '3', name: 'Bills', icon: Receipt, color: COLORS.category.bills },
-  { id: '4', name: 'Salary', icon: Banknote, color: COLORS.category.salary },
-  { id: '5', name: 'Shopping', icon: ShoppingBag, color: COLORS.category.shopping },
-  { id: '6', name: 'Entertainment', icon: Gamepad2, color: COLORS.category.entertainment },
-  { id: '7', name: 'Health', icon: HeartPulse, color: COLORS.category.health },
-  { id: '8', name: 'Other', icon: MoreHorizontal, color: COLORS.category.other },
+  { id: 'Food', name: 'Food', icon: UtensilsCrossed, color: COLORS.category.food },
+  { id: 'Transport', name: 'Transport', icon: Car, color: COLORS.category.transport },
+  { id: 'Bills', name: 'Bills', icon: Receipt, color: COLORS.category.bills },
+  { id: 'Salary', name: 'Salary', icon: Banknote, color: COLORS.category.salary },
+  { id: 'Shopping', name: 'Shopping', icon: ShoppingBag, color: COLORS.category.shopping },
+  { id: 'Entertainment', name: 'Entertainment', icon: Gamepad2, color: COLORS.category.entertainment },
+  { id: 'Health', name: 'Health', icon: HeartPulse, color: COLORS.category.health },
+  { id: 'Other', name: 'Other', icon: MoreHorizontal, color: COLORS.category.other },
 ];
 
 /**

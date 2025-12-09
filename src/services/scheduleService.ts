@@ -5,7 +5,7 @@
 
 import { supabase } from '../lib/supabase';
 import { getCurrentUserId } from './authService';
-import { Database } from '../../../orbit-backend/supabase/types/database.types';
+import { Database } from '../types/database';
 
 type ScheduleEventRow = Database['public']['Tables']['schedule_events']['Row'];
 type ScheduleEventInsert = Database['public']['Tables']['schedule_events']['Insert'];

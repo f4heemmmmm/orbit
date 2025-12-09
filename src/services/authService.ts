@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '../lib/supabase';
-import { Database } from '../../../orbit-backend/supabase/types/database.types';
+import { Database } from '../types/database';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 

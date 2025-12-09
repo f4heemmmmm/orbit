@@ -1,5 +1,8 @@
 import { LucideIcon } from 'lucide-react-native';
 
+// Category type matching database schema
+export type TransactionCategory = 'Food' | 'Transport' | 'Bills' | 'Salary' | 'Shopping' | 'Entertainment' | 'Health' | 'Other';
+
 // Transaction Types
 export interface Transaction {
   id: string;
@@ -7,7 +10,7 @@ export interface Transaction {
   description: string;
   amount: number;
   type: 'income' | 'expense';
-  category: string;
+  category: TransactionCategory;
   date: string;
 }
 
@@ -16,12 +19,12 @@ export interface TransactionData {
   description: string;
   amount: number;
   type: 'income' | 'expense';
-  category: string;
+  category: TransactionCategory;
   date: Date;
 }
 
 export interface Category {
-  id: string;
+  id: TransactionCategory;
   name: string;
   icon: LucideIcon;
   color: string;
