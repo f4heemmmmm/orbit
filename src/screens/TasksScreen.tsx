@@ -291,6 +291,7 @@ export default function TasksScreen(): React.JSX.Element {
           keyExtractor={item => item.id}
           className="flex-1 px-4"
           showsVerticalScrollIndicator={false}
+          keyboardDismissMode="on-drag"
           refreshControl={
             <RefreshControl
               refreshing={refreshing}

@@ -309,6 +309,7 @@ export default function ScheduleScreen(): React.JSX.Element {
         <ScrollView
           className="flex-1 px-4"
           showsVerticalScrollIndicator={false}
+          keyboardDismissMode="on-drag"
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -351,7 +352,7 @@ export default function ScheduleScreen(): React.JSX.Element {
           <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
             <TouchableWithoutFeedback>
               <View className="rounded-t-3xl p-6 max-h-[85%]" style={{ backgroundColor: '#1a1a2e' }}>
-                <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+                <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={false}>
                   <Text style={{ color: '#e8e8e8' }} className="text-xl font-bold mb-5 text-center">New Event</Text>
 
             <TextInput

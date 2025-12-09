@@ -188,6 +188,7 @@ export default function FinancialsScreen(): React.JSX.Element {
       <ScrollView
         className="flex-1 px-4"
         showsVerticalScrollIndicator={false}
+        keyboardDismissMode="on-drag"
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

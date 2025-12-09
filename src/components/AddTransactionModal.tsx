@@ -93,7 +93,7 @@ export default function AddTransactionModal({
                   <X size={24} color={COLORS.text.secondary} />
                 </TouchableOpacity>
               </View>
-              <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
+              <ScrollView className="flex-1" keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
                 <TextInput
                   className="rounded-xl mb-3"
                   style={{
