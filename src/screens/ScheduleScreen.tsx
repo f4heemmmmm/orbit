@@ -355,14 +355,16 @@ export default function ScheduleScreen(): React.JSX.Element {
                   <Text style={{ color: '#e8e8e8' }} className="text-xl font-bold mb-5 text-center">New Event</Text>
 
             <TextInput
-              className="rounded-xl text-base mb-3"
+              className="rounded-xl mb-3"
               style={{
                 backgroundColor: '#252540',
                 color: '#e8e8e8',
-                paddingVertical: 16,
                 paddingHorizontal: 16,
+                paddingVertical: 0,
                 height: 56,
-                textAlignVertical: 'center',
+                fontSize: 16,
+                lineHeight: 20,
+                includeFontPadding: false,
               }}
               placeholder="Event title"
               placeholderTextColor="#6b6b80"
@@ -371,14 +373,16 @@ export default function ScheduleScreen(): React.JSX.Element {
             />
 
             <TextInput
-              className="rounded-xl text-base mb-3"
+              className="rounded-xl mb-3"
               style={{
                 backgroundColor: '#252540',
                 color: '#e8e8e8',
-                paddingVertical: 16,
                 paddingHorizontal: 16,
+                paddingVertical: 0,
                 height: 56,
-                textAlignVertical: 'center',
+                fontSize: 16,
+                lineHeight: 20,
+                includeFontPadding: false,
               }}
               placeholder="Description (optional)"
               placeholderTextColor="#6b6b80"
@@ -388,14 +392,16 @@ export default function ScheduleScreen(): React.JSX.Element {
 
             <View className="flex-row gap-3">
               <TextInput
-                className="flex-1 rounded-xl text-base mb-3"
+                className="flex-1 rounded-xl mb-3"
                 style={{
                   backgroundColor: '#252540',
                   color: '#e8e8e8',
-                  paddingVertical: 16,
                   paddingHorizontal: 16,
+                  paddingVertical: 0,
                   height: 56,
-                  textAlignVertical: 'center',
+                  fontSize: 16,
+                  lineHeight: 20,
+                  includeFontPadding: false,
                 }}
                 placeholder="Date (YYYY-MM-DD)"
                 placeholderTextColor="#6b6b80"
@@ -403,14 +409,16 @@ export default function ScheduleScreen(): React.JSX.Element {
                 onChangeText={setDate}
               />
               <TextInput
-                className="flex-1 rounded-xl text-base mb-3"
+                className="flex-1 rounded-xl mb-3"
                 style={{
                   backgroundColor: '#252540',
                   color: '#e8e8e8',
-                  paddingVertical: 16,
                   paddingHorizontal: 16,
+                  paddingVertical: 0,
                   height: 56,
-                  textAlignVertical: 'center',
+                  fontSize: 16,
+                  lineHeight: 20,
+                  includeFontPadding: false,
                 }}
                 placeholder="Time (HH:MM)"
                 placeholderTextColor="#6b6b80"

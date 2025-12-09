@@ -95,14 +95,16 @@ export default function AddTransactionModal({
               </View>
               <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
                 <TextInput
-                  className="rounded-xl text-base mb-3"
+                  className="rounded-xl mb-3"
                   style={{
                     backgroundColor: COLORS.surface,
                     color: COLORS.text.primary,
-                    paddingVertical: 16,
                     paddingHorizontal: 16,
+                    paddingVertical: 0,
                     height: 56,
-                    textAlignVertical: 'center',
+                    fontSize: 16,
+                    lineHeight: 20,
+                    includeFontPadding: false,
                   }}
                   placeholder="Title"
                   placeholderTextColor={COLORS.text.muted}
@@ -110,14 +112,16 @@ export default function AddTransactionModal({
                   onChangeText={setTitle}
                 />
                 <TextInput
-                  className="rounded-xl text-base mb-3"
+                  className="rounded-xl mb-3"
                   style={{
                     backgroundColor: COLORS.surface,
                     color: COLORS.text.primary,
-                    paddingVertical: 16,
                     paddingHorizontal: 16,
+                    paddingVertical: 0,
                     height: 56,
-                    textAlignVertical: 'center',
+                    fontSize: 16,
+                    lineHeight: 20,
+                    includeFontPadding: false,
                   }}
                   placeholder="Description (optional)"
                   placeholderTextColor={COLORS.text.muted}
@@ -125,14 +129,16 @@ export default function AddTransactionModal({
                   onChangeText={setDescription}
                 />
                 <TextInput
-                  className="rounded-xl text-base mb-3"
+                  className="rounded-xl mb-3"
                   style={{
                     backgroundColor: COLORS.surface,
                     color: COLORS.text.primary,
-                    paddingVertical: 16,
                     paddingHorizontal: 16,
+                    paddingVertical: 0,
                     height: 56,
-                    textAlignVertical: 'center',
+                    fontSize: 16,
+                    lineHeight: 20,
+                    includeFontPadding: false,
                   }}
                   placeholder="Amount"
                   placeholderTextColor={COLORS.text.muted}

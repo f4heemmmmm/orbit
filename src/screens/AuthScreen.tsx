@@ -88,14 +88,16 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps): React.JS
         <View className="gap-4">
           {isSignUp && (
             <TextInput
-              className="rounded-xl text-base"
+              className="rounded-xl"
               style={{
                 backgroundColor: COLORS.card,
                 color: COLORS.text.primary,
-                paddingVertical: 16,
                 paddingHorizontal: 16,
+                paddingVertical: 0,
                 height: 56,
-                textAlignVertical: 'center',
+                fontSize: 16,
+                lineHeight: 20,
+                includeFontPadding: false,
               }}
               placeholder="Full Name"
               placeholderTextColor={COLORS.text.muted}
@@ -106,14 +108,16 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps): React.JS
           )}
 
           <TextInput
-            className="rounded-xl text-base"
+            className="rounded-xl"
             style={{
               backgroundColor: COLORS.card,
               color: COLORS.text.primary,
-              paddingVertical: 16,
               paddingHorizontal: 16,
+              paddingVertical: 0,
               height: 56,
-              textAlignVertical: 'center',
+              fontSize: 16,
+              lineHeight: 20,
+              includeFontPadding: false,
             }}
             placeholder="Email"
             placeholderTextColor={COLORS.text.muted}
@@ -125,14 +129,16 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps): React.JS
           />
 
           <TextInput
-            className="rounded-xl text-base"
+            className="rounded-xl"
             style={{
               backgroundColor: COLORS.card,
               color: COLORS.text.primary,
-              paddingVertical: 16,
               paddingHorizontal: 16,
+              paddingVertical: 0,
               height: 56,
-              textAlignVertical: 'center',
+              fontSize: 16,
+              lineHeight: 20,
+              includeFontPadding: false,
             }}
             placeholder="Password"
             placeholderTextColor={COLORS.text.muted}

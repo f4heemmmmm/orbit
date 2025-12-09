@@ -327,14 +327,16 @@ export default function TasksScreen(): React.JSX.Element {
                 <Text style={{ color: '#e8e8e8' }} className="text-xl font-bold mb-5 text-center">New Task</Text>
 
             <TextInput
-              className="rounded-xl text-base mb-3"
+              className="rounded-xl mb-3"
               style={{
                 backgroundColor: '#252540',
                 color: '#e8e8e8',
-                paddingVertical: 16,
                 paddingHorizontal: 16,
+                paddingVertical: 0,
                 height: 56,
-                textAlignVertical: 'center',
+                fontSize: 16,
+                lineHeight: 20,
+                includeFontPadding: false,
               }}
               placeholder="Task title"
               placeholderTextColor="#6b6b80"
