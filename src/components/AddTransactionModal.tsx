@@ -94,58 +94,48 @@ export default function AddTransactionModal({
                 </TouchableOpacity>
               </View>
               <ScrollView className="flex-1" keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+                <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">Title</Text>
                 <TextInput
-                  className="rounded-xl mb-3"
+                  className="rounded-xl mb-3 p-4"
                   style={{
                     backgroundColor: COLORS.surface,
                     color: COLORS.text.primary,
-                    paddingHorizontal: 16,
-                    paddingVertical: 0,
-                    height: 56,
                     fontSize: 16,
-                    lineHeight: 20,
                     includeFontPadding: false,
                   }}
-                  placeholder="Title"
                   placeholderTextColor={COLORS.text.muted}
                   value={title}
                   onChangeText={setTitle}
+                  autoFocus
                 />
+                <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">Description (optional)</Text>
                 <TextInput
-                  className="rounded-xl mb-3"
+                  className="rounded-xl mb-3 p-4"
                   style={{
                     backgroundColor: COLORS.surface,
                     color: COLORS.text.primary,
-                    paddingHorizontal: 16,
-                    paddingVertical: 0,
-                    height: 56,
                     fontSize: 16,
-                    lineHeight: 20,
                     includeFontPadding: false,
                   }}
-                  placeholder="Description (optional)"
                   placeholderTextColor={COLORS.text.muted}
                   value={description}
                   onChangeText={setDescription}
                 />
+                <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">Amount</Text>
                 <TextInput
-                  className="rounded-xl mb-3"
+                  className="rounded-xl mb-3 p-4"
                   style={{
                     backgroundColor: COLORS.surface,
                     color: COLORS.text.primary,
-                    paddingHorizontal: 16,
-                    paddingVertical: 0,
-                    height: 56,
                     fontSize: 16,
-                    lineHeight: 20,
                     includeFontPadding: false,
                   }}
-                  placeholder="Amount"
                   placeholderTextColor={COLORS.text.muted}
                   value={amount}
                   onChangeText={setAmount}
                   keyboardType="numeric"
                 />
+                <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">Date & Time</Text>
                 <TouchableOpacity
                   className="rounded-xl p-4 mb-3 flex-row items-center"
                   style={{ backgroundColor: COLORS.surface }}
@@ -174,6 +164,7 @@ export default function AddTransactionModal({
                     themeVariant="dark"
                   />
                 )}
+                <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">Type</Text>
                 <View className="flex-row mb-4 gap-3">
                   <TouchableOpacity
                     className="flex-1 p-3 rounded-xl items-center"
@@ -194,7 +185,7 @@ export default function AddTransactionModal({
                     </Text>
                   </TouchableOpacity>
                 </View>
-                <Text style={{ color: COLORS.text.secondary }} className="text-sm font-medium mb-2">Category</Text>
+                <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">Category</Text>
                 <View className="flex-row flex-wrap mb-5 gap-2">
                   {TRANSACTION_CATEGORIES.map(cat => {
                     const CatIcon = cat.icon;
