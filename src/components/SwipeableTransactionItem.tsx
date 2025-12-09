@@ -15,6 +15,7 @@ import { COLORS } from '../constants/theme';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = -80;
 const DELETE_BUTTON_WIDTH = 80;
+const BORDER_RADIUS = 12; // rounded-xl in Tailwind
 
 interface Props {
   item: Transaction;
@@ -32,6 +33,21 @@ export default function SwipeableTransactionItem({ item, onPress, onDelete }: Pr
 
   const category = getCategoryInfo(item.category);
   const IconComponent = category.icon;
+
+  // Interpolate border radius based on swipe position
+  // When closed (0), borderRadius is BORDER_RADIUS (rounded-xl)
+  // When open (-DELETE_BUTTON_WIDTH), borderRadius is 0 on the right side
+  const borderTopRightRadius = translateX.interpolate({
+    inputRange: [-DELETE_BUTTON_WIDTH, 0],
+    outputRange: [0, BORDER_RADIUS],
+    extrapolate: 'clamp',
+  });
+
+  const borderBottomRightRadius = translateX.interpolate({
+    inputRange: [-DELETE_BUTTON_WIDTH, 0],
+    outputRange: [0, BORDER_RADIUS],
+    extrapolate: 'clamp',
+  });
 
   const panResponder = useRef(
     PanResponder.create({
@@ -86,7 +102,7 @@ export default function SwipeableTransactionItem({ item, onPress, onDelete }: Pr
           // Open delete button with spring animation
           Animated.spring(translateX, {
             toValue: -DELETE_BUTTON_WIDTH,
-            useNativeDriver: true,
+            useNativeDriver: false,
             tension: 100,
             friction: 10,
           }).start();
@@ -95,7 +111,7 @@ export default function SwipeableTransactionItem({ item, onPress, onDelete }: Pr
           // Close delete button with spring animation
           Animated.spring(translateX, {
             toValue: 0,
-            useNativeDriver: true,
+            useNativeDriver: false,
             tension: 100,
             friction: 10,
           }).start();
@@ -107,7 +123,7 @@ export default function SwipeableTransactionItem({ item, onPress, onDelete }: Pr
         const shouldOpen = currentOffset.current < -DELETE_BUTTON_WIDTH / 2;
         Animated.spring(translateX, {
           toValue: shouldOpen ? -DELETE_BUTTON_WIDTH : 0,
-          useNativeDriver: true,
+          useNativeDriver: false,
           tension: 100,
           friction: 10,
         }).start();
@@ -119,7 +135,7 @@ export default function SwipeableTransactionItem({ item, onPress, onDelete }: Pr
   const closeSwipe = () => {
     Animated.spring(translateX, {
       toValue: 0,
-      useNativeDriver: true,
+      useNativeDriver: false,
       tension: 100,
       friction: 10,
     }).start();
@@ -140,13 +156,15 @@ export default function SwipeableTransactionItem({ item, onPress, onDelete }: Pr
   };
 
   return (
-    <View className="mb-3 overflow-hidden rounded-xl">
+    <View className="mb-3 overflow-hidden" style={{ borderRadius: BORDER_RADIUS }}>
       {/* Delete button behind */}
       <View
-        className="absolute right-0 top-0 bottom-0 justify-center items-center rounded-r-xl"
+        className="absolute right-0 top-0 bottom-0 justify-center items-center"
         style={{
           width: DELETE_BUTTON_WIDTH,
           backgroundColor: COLORS.pastel.red,
+          borderTopRightRadius: BORDER_RADIUS,
+          borderBottomRightRadius: BORDER_RADIUS,
         }}
       >
         <TouchableOpacity
@@ -163,11 +181,16 @@ export default function SwipeableTransactionItem({ item, onPress, onDelete }: Pr
         {...panResponder.panHandlers}
         style={{
           transform: [{ translateX }],
+          borderTopRightRadius,
+          borderBottomRightRadius,
+          borderTopLeftRadius: BORDER_RADIUS,
+          borderBottomLeftRadius: BORDER_RADIUS,
+          backgroundColor: COLORS.card,
         }}
       >
         <TouchableOpacity
-          className="flex-row items-center rounded-xl p-4"
-          style={{ backgroundColor: COLORS.card }}
+          className="flex-row items-center p-4"
+          style={{ backgroundColor: 'transparent' }}
           onPress={handlePress}
           activeOpacity={0.7}
         >
