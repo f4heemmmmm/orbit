@@ -23,6 +23,7 @@ module.exports = function(api) {
             '@config': './src/config',
             '@store': './src/store',
             '@assets': './src/assets',
+            '@lib': './src/lib',
           },
         },
       ],

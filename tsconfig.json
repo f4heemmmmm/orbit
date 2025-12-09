@@ -21,7 +21,8 @@
       "@navigation/*": ["src/navigation/*"],
       "@config/*": ["src/config/*"],
       "@store/*": ["src/store/*"],
-      "@assets/*": ["src/assets/*"]
+      "@assets/*": ["src/assets/*"],
+      "@lib/*": ["src/lib/*"]
     }
   },
   "include": [
