@@ -44,7 +44,9 @@ export default function ViewTransactionScreen({ navigation, route }: Props): Rea
   const isIncome = transaction.type === 'income';
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.card }}>
+    <View style={{ flex: 1, backgroundColor: COLORS.background }}>
+      {/* Status bar background */}
+      <SafeAreaView style={{ backgroundColor: COLORS.card }} />
       <View className="flex-1" style={{ backgroundColor: COLORS.background }}>
         {/* Header */}
         <View className="flex-row items-center justify-center px-4 py-4" style={{ backgroundColor: COLORS.card }}>
@@ -183,6 +185,6 @@ export default function ViewTransactionScreen({ navigation, route }: Props): Rea
           onUpdate={handleUpdate}
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 }

@@ -32,19 +32,36 @@ export default function EditTransactionModal({
 }: EditTransactionModalProps): React.JSX.Element {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState('');
+  const [amountCents, setAmountCents] = useState(0);
   const [type, setType] = useState<'income' | 'expense'>('expense');
   const [selectedCategory, setSelectedCategory] = useState<TransactionCategory>('Other');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
+  // Format cents to dollar string (POS-style)
+  const formatCentsToDollars = (cents: number): string => {
+    const dollars = (cents / 100).toFixed(2);
+    return dollars;
+  };
+
+  // Handle POS-style amount input (fills from cents)
+  const handleAmountInput = (text: string): void => {
+    // Remove any non-numeric characters
+    const numericOnly = text.replace(/[^0-9]/g, '');
+    // Convert to integer (cents)
+    const cents = parseInt(numericOnly, 10) || 0;
+    // Cap at reasonable max (999999.99)
+    const cappedCents = Math.min(cents, 99999999);
+    setAmountCents(cappedCents);
+  };
+
   // Populate form when transaction changes
   useEffect(() => {
     if (transaction) {
       setTitle(transaction.title);
       setDescription(transaction.description);
-      setAmount(transaction.amount.toString());
+      setAmountCents(Math.round(transaction.amount * 100));
       setType(transaction.type);
       setSelectedCategory(transaction.category);
       setDate(new Date(transaction.date));
@@ -73,11 +90,11 @@ export default function EditTransactionModal({
   };
 
   const handleUpdate = (): void => {
-    if (!title.trim() || !amount.trim() || !transaction) return;
+    if (!title.trim() || amountCents <= 0 || !transaction) return;
     onUpdate(transaction.id, {
       title: title.trim(),
       description: description.trim(),
-      amount: parseFloat(amount),
+      amount: amountCents / 100,
       type,
       category: selectedCategory,
       date,
@@ -129,19 +146,27 @@ export default function EditTransactionModal({
                   onChangeText={setDescription}
                 />
                 <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">Amount</Text>
-                <TextInput
-                  className="rounded-xl mb-3 p-4"
-                  style={{
-                    backgroundColor: COLORS.surface,
-                    color: COLORS.text.primary,
-                    fontSize: 16,
-                    includeFontPadding: false,
-                  }}
-                  placeholderTextColor={COLORS.text.muted}
-                  value={amount}
-                  onChangeText={setAmount}
-                  keyboardType="numeric"
-                />
+                <View
+                  className="rounded-xl mb-3 p-4 flex-row items-center"
+                  style={{ backgroundColor: COLORS.surface }}
+                >
+                  <Text style={{ color: COLORS.text.primary, fontSize: 16 }}>$</Text>
+                  <TextInput
+                    className="flex-1 ml-1"
+                    style={{
+                      color: COLORS.text.primary,
+                      fontSize: 16,
+                      includeFontPadding: false,
+                      padding: 0,
+                    }}
+                    placeholder="0.00"
+                    placeholderTextColor={COLORS.text.muted}
+                    value={amountCents === 0 ? '' : formatCentsToDollars(amountCents)}
+                    onChangeText={handleAmountInput}
+                    keyboardType="number-pad"
+                    caretHidden={true}
+                  />
+                </View>
                 <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">Date & Time</Text>
                 <TouchableOpacity
                   className="rounded-xl p-4 mb-3 flex-row items-center"

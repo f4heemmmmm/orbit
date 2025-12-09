@@ -15,7 +15,7 @@ import { COLORS } from '../constants/theme';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = -80;
 const DELETE_BUTTON_WIDTH = 80;
-const BORDER_RADIUS = 12; // rounded-xl in Tailwind
+const BORDER_RADIUS = 15; // rounded-xl in Tailwind
 
 interface Props {
   item: Transaction;
@@ -55,14 +55,14 @@ export default function SwipeableTransactionItem({ item, onPress, onDelete }: Pr
       onStartShouldSetPanResponderCapture: () => false,
       onMoveShouldSetPanResponder: (_, gestureState) => {
         // Only respond to horizontal swipes with minimal vertical movement
-        const isHorizontal = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
-        const hasMovedEnough = Math.abs(gestureState.dx) > 2;
+        const isHorizontal = Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 2;
+        const hasMovedEnough = Math.abs(gestureState.dx) > 5;
         return isHorizontal && hasMovedEnough;
       },
       onMoveShouldSetPanResponderCapture: (_, gestureState) => {
         // Capture horizontal swipes to prevent ScrollView from taking over
-        const isHorizontal = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
-        const hasMovedEnough = Math.abs(gestureState.dx) > 2;
+        const isHorizontal = Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 2;
+        const hasMovedEnough = Math.abs(gestureState.dx) > 5;
         return isHorizontal && hasMovedEnough;
       },
       onPanResponderTerminationRequest: () => false,
@@ -86,16 +86,16 @@ export default function SwipeableTransactionItem({ item, onPress, onDelete }: Pr
         const velocity = gestureState.vx;
 
         // Determine if we should open or close based on position and velocity
-        // Open if: swiped past halfway OR fast left swipe
-        // Close if: not past halfway OR fast right swipe
+        // Open if: swiped past threshold OR fast left swipe
+        // Close if: not past threshold OR fast right swipe
         let shouldOpen;
 
-        if (Math.abs(velocity) > 0.5) {
+        if (Math.abs(velocity) > 0.3) {
           // If there's significant velocity, use that to determine direction
           shouldOpen = velocity < 0;
         } else {
-          // Otherwise, use position threshold
-          shouldOpen = currentValue < -DELETE_BUTTON_WIDTH / 2;
+          // Otherwise, use position threshold (30% of button width)
+          shouldOpen = currentValue < -DELETE_BUTTON_WIDTH * 0.3;
         }
 
         if (shouldOpen) {
@@ -103,8 +103,8 @@ export default function SwipeableTransactionItem({ item, onPress, onDelete }: Pr
           Animated.spring(translateX, {
             toValue: -DELETE_BUTTON_WIDTH,
             useNativeDriver: false,
-            tension: 100,
-            friction: 10,
+            tension: 80,
+            friction: 8,
           }).start();
           currentOffset.current = -DELETE_BUTTON_WIDTH;
         } else {
@@ -112,20 +112,20 @@ export default function SwipeableTransactionItem({ item, onPress, onDelete }: Pr
           Animated.spring(translateX, {
             toValue: 0,
             useNativeDriver: false,
-            tension: 100,
-            friction: 10,
+            tension: 80,
+            friction: 8,
           }).start();
           currentOffset.current = 0;
         }
       },
       onPanResponderTerminate: () => {
         // If gesture is interrupted, snap to nearest position
-        const shouldOpen = currentOffset.current < -DELETE_BUTTON_WIDTH / 2;
+        const shouldOpen = currentOffset.current < -DELETE_BUTTON_WIDTH * 0.3;
         Animated.spring(translateX, {
           toValue: shouldOpen ? -DELETE_BUTTON_WIDTH : 0,
           useNativeDriver: false,
-          tension: 100,
-          friction: 10,
+          tension: 80,
+          friction: 8,
         }).start();
         currentOffset.current = shouldOpen ? -DELETE_BUTTON_WIDTH : 0;
       },
@@ -156,15 +156,13 @@ export default function SwipeableTransactionItem({ item, onPress, onDelete }: Pr
   };
 
   return (
-    <View className="mb-3 overflow-hidden" style={{ borderRadius: BORDER_RADIUS }}>
+    <View className="mb-3" style={{ borderRadius: BORDER_RADIUS, overflow: 'hidden' }}>
       {/* Delete button behind */}
       <View
         className="absolute right-0 top-0 bottom-0 justify-center items-center"
         style={{
           width: DELETE_BUTTON_WIDTH,
           backgroundColor: COLORS.pastel.red,
-          borderTopRightRadius: BORDER_RADIUS,
-          borderBottomRightRadius: BORDER_RADIUS,
         }}
       >
         <TouchableOpacity

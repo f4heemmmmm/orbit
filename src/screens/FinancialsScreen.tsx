@@ -7,10 +7,14 @@ import {
   ActivityIndicator,
   Alert,
   RefreshControl,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Plus, Wallet } from 'lucide-react-native';
+import { Plus, Wallet, X } from 'lucide-react-native';
 import AddTransactionModal from '../components/AddTransactionModal';
 import SwipeableTransactionItem from '../components/SwipeableTransactionItem';
 import { Transaction, TransactionData } from '../types';
@@ -32,6 +36,8 @@ export default function FinancialsScreen(): React.JSX.Element {
   const navigation = useNavigation<NavigationProp>();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [initModalVisible, setInitModalVisible] = useState(false);
+  const [initAmountCents, setInitAmountCents] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -99,6 +105,63 @@ export default function FinancialsScreen(): React.JSX.Element {
     .reduce((sum, t) => sum + t.amount, 0);
 
   const balance = totalIncome - totalExpenses;
+
+  // Format cents to dollar string (POS-style)
+  const formatCentsToDollars = (cents: number): string => {
+    const dollars = (cents / 100).toFixed(2);
+    return dollars;
+  };
+
+  // Handle POS-style amount input (fills from cents)
+  const handleAmountInput = (text: string, setCents: (cents: number) => void): void => {
+    // Remove any non-numeric characters
+    const numericOnly = text.replace(/[^0-9]/g, '');
+    // Convert to integer (cents)
+    const cents = parseInt(numericOnly, 10) || 0;
+    // Cap at reasonable max (999999.99)
+    const cappedCents = Math.min(cents, 99999999);
+    setCents(cappedCents);
+  };
+
+  const handleInitializeBalance = async (): Promise<void> => {
+    if (initAmountCents <= 0) {
+      Alert.alert('Invalid Amount', 'Please enter a valid positive amount.');
+      return;
+    }
+
+    const amount = initAmountCents / 100;
+
+    try {
+      const newTransaction = await createTransaction({
+        title: 'Initialization',
+        description: 'Initial balance setup',
+        amount: amount,
+        type: 'income',
+        category: 'Other',
+        date: new Date().toISOString(),
+      });
+
+      if (newTransaction) {
+        const formattedTransaction: Transaction = {
+          id: newTransaction.id,
+          title: newTransaction.title,
+          description: newTransaction.description || '',
+          amount: Number(newTransaction.amount),
+          type: newTransaction.type,
+          category: newTransaction.category,
+          date: new Date(newTransaction.date).toISOString().split('T')[0],
+        };
+        setTransactions([formattedTransaction, ...transactions]);
+        setInitModalVisible(false);
+        setInitAmountCents(0);
+      } else {
+        Alert.alert('Error', 'Failed to initialize balance. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error initializing balance:', error);
+      Alert.alert('Error', 'Failed to initialize balance. Please try again.');
+    }
+  };
 
   const handleAddTransaction = async (data: TransactionData): Promise<void> => {
     try {
@@ -222,12 +285,24 @@ export default function FinancialsScreen(): React.JSX.Element {
     <View className="flex-1" style={{ backgroundColor: COLORS.background }}>
       {/* Summary Cards */}
       <View className="p-4">
-        <View className="rounded-2xl p-5 items-center mb-3" style={{ backgroundColor: COLORS.card }}>
+        <TouchableOpacity
+          className="rounded-2xl p-5 items-center mb-3"
+          style={{ backgroundColor: COLORS.card }}
+          onPress={() => {
+            if (transactions.length === 0) {
+              setInitModalVisible(true);
+            }
+          }}
+          activeOpacity={transactions.length === 0 ? 0.7 : 1}
+        >
           <Text style={{ color: COLORS.text.secondary }} className="text-base mb-1">Total Balance</Text>
           <Text style={{ color: balance >= 0 ? COLORS.pastel.green : COLORS.pastel.red }} className="text-2xl font-bold">
             ${balance.toFixed(2)}
           </Text>
-        </View>
+          {transactions.length === 0 && (
+            <Text style={{ color: COLORS.text.muted }} className="text-xs mt-1">Tap to set initial balance</Text>
+          )}
+        </TouchableOpacity>
         <View className="flex-row gap-3">
           <View className="flex-1 rounded-2xl p-5 items-center" style={{ backgroundColor: COLORS.card }}>
             <Text style={{ color: COLORS.text.secondary }} className="text-base">Income</Text>
@@ -289,6 +364,70 @@ export default function FinancialsScreen(): React.JSX.Element {
         onClose={() => setModalVisible(false)}
         onAdd={handleAddTransaction}
       />
+
+      {/* Initialize Balance Modal */}
+      <Modal
+        visible={initModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          setInitModalVisible(false);
+          setInitAmountCents(0);
+        }}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          className="flex-1"
+        >
+          <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+            <View className="w-[85%] rounded-2xl p-5" style={{ backgroundColor: COLORS.card }}>
+              <View className="flex-row justify-between items-center mb-4">
+                <Text style={{ color: COLORS.text.primary }} className="text-xl font-bold">Set Initial Balance</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setInitModalVisible(false);
+                    setInitAmountCents(0);
+                  }}
+                >
+                  <X size={24} color={COLORS.text.secondary} />
+                </TouchableOpacity>
+              </View>
+
+              <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">Enter your current balance</Text>
+              <View
+                className="rounded-xl mb-4 p-4 flex-row items-center"
+                style={{ backgroundColor: COLORS.surface }}
+              >
+                <Text style={{ color: COLORS.text.primary, fontSize: 16 }}>$</Text>
+                <TextInput
+                  className="flex-1 ml-1"
+                  style={{
+                    color: COLORS.text.primary,
+                    fontSize: 16,
+                    includeFontPadding: false,
+                    padding: 0,
+                  }}
+                  placeholder="0.00"
+                  placeholderTextColor={COLORS.text.muted}
+                  keyboardType="number-pad"
+                  value={initAmountCents === 0 ? '' : formatCentsToDollars(initAmountCents)}
+                  onChangeText={(text) => handleAmountInput(text, setInitAmountCents)}
+                  autoFocus
+                  caretHidden={true}
+                />
+              </View>
+
+              <TouchableOpacity
+                className="rounded-xl py-3 items-center"
+                style={{ backgroundColor: COLORS.pastel.green }}
+                onPress={handleInitializeBalance}
+              >
+                <Text style={{ color: COLORS.background }} className="text-base font-semibold">Initialize Balance</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
