@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
-import { ChevronLeft, TrendingUp, TrendingDown, Calendar, Tag, FileText, DollarSign } from 'lucide-react-native';
+import { ChevronLeft, TrendingUp, TrendingDown, Calendar, Tag, FileText, DollarSign, Edit } from 'lucide-react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Transaction, Category } from '../types';
+import { Transaction, Category, TransactionData } from '../types';
 import { TRANSACTION_CATEGORIES } from '../constants/categories';
 import { COLORS } from '../constants/theme';
 import { formatSimpleDate } from '../utils/dateUtils';
+import EditTransactionModal from '../components/EditTransactionModal';
 
 export type FinancialsStackParamList = {
   FinancialsList: undefined;
@@ -14,16 +15,28 @@ export type FinancialsStackParamList = {
 
 type RootStackParamList = {
   MainTabs: undefined;
-  ViewTransaction: { transaction: Transaction };
+  ViewTransaction: {
+    transaction: Transaction;
+    onUpdate?: (id: string, data: TransactionData) => void;
+  };
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ViewTransaction'>;
 
 export default function ViewTransactionScreen({ navigation, route }: Props): React.JSX.Element {
-  const { transaction } = route.params;
+  const { transaction, onUpdate } = route.params;
+  const [editModalVisible, setEditModalVisible] = useState(false);
 
   const getCategoryInfo = (categoryName: string): Category => {
     return TRANSACTION_CATEGORIES.find(c => c.name === categoryName) || TRANSACTION_CATEGORIES[7];
+  };
+
+  const handleUpdate = (id: string, data: TransactionData): void => {
+    if (onUpdate) {
+      onUpdate(id, data);
+    }
+    setEditModalVisible(false);
+    navigation.goBack();
   };
 
   const category = getCategoryInfo(transaction.category);
@@ -44,6 +57,12 @@ export default function ViewTransactionScreen({ navigation, route }: Props): Rea
           <Text style={{ color: COLORS.text.primary }} className="text-xl font-bold">
             Transaction Details
           </Text>
+          <TouchableOpacity
+            onPress={() => setEditModalVisible(true)}
+            className="absolute right-4 p-2"
+          >
+            <Edit size={24} color={COLORS.pastel.blue} />
+          </TouchableOpacity>
         </View>
 
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
@@ -156,6 +175,13 @@ export default function ViewTransactionScreen({ navigation, route }: Props): Rea
           {/* Bottom spacing */}
           <View className="h-8" />
         </ScrollView>
+
+        <EditTransactionModal
+          visible={editModalVisible}
+          transaction={transaction}
+          onClose={() => setEditModalVisible(false)}
+          onUpdate={handleUpdate}
+        />
       </View>
     </SafeAreaView>
   );

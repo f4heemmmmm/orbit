@@ -16,11 +16,14 @@ import SwipeableTransactionItem from '../components/SwipeableTransactionItem';
 import { Transaction, TransactionData } from '../types';
 import { COLORS } from '../constants/theme';
 import { formatRelativeDate } from '../utils/dateUtils';
-import { getTransactions, createTransaction, deleteTransaction } from '../services/transactionService';
+import { getTransactions, createTransaction, deleteTransaction, updateTransaction } from '../services/transactionService';
 
 type RootStackParamList = {
   MainTabs: undefined;
-  ViewTransaction: { transaction: Transaction };
+  ViewTransaction: {
+    transaction: Transaction;
+    onUpdate?: (id: string, data: TransactionData) => void;
+  };
 };
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -130,6 +133,38 @@ export default function FinancialsScreen(): React.JSX.Element {
     }
   };
 
+  const handleUpdateTransaction = async (id: string, data: TransactionData): Promise<void> => {
+    try {
+      const updatedTransaction = await updateTransaction(id, {
+        title: data.title,
+        description: data.description,
+        amount: data.amount,
+        type: data.type,
+        category: data.category,
+        date: data.date.toISOString(),
+      });
+
+      if (updatedTransaction) {
+        // Update local state immediately for better UX
+        const formattedTransaction: Transaction = {
+          id: updatedTransaction.id,
+          title: updatedTransaction.title,
+          description: updatedTransaction.description || '',
+          amount: Number(updatedTransaction.amount),
+          type: updatedTransaction.type,
+          category: updatedTransaction.category,
+          date: new Date(updatedTransaction.date).toISOString().split('T')[0],
+        };
+        setTransactions(transactions.map(t => t.id === id ? formattedTransaction : t));
+      } else {
+        Alert.alert('Error', 'Failed to update transaction. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error updating transaction:', error);
+      Alert.alert('Error', 'Failed to update transaction. Please try again.');
+    }
+  };
+
   const handleDeleteTransaction = async (id: string): Promise<void> => {
     Alert.alert(
       'Delete Transaction',
@@ -174,7 +209,10 @@ export default function FinancialsScreen(): React.JSX.Element {
       <SwipeableTransactionItem
         key={item.id}
         item={item}
-        onPress={() => navigation.navigate('ViewTransaction', { transaction: item })}
+        onPress={() => navigation.navigate('ViewTransaction', {
+          transaction: item,
+          onUpdate: handleUpdateTransaction,
+        })}
         onDelete={() => handleDeleteTransaction(item.id)}
       />
     );
