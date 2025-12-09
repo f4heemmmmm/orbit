@@ -114,7 +114,7 @@ export default function FinancialsScreen(): React.JSX.Element {
     const category = getCategoryInfo(item.category);
     const IconComponent = category.icon;
     return (
-      <View key={item.id} className="flex-row items-center rounded-xl p-4 mb-2" style={{ backgroundColor: COLORS.card }}>
+      <View key={item.id} className="flex-row items-center rounded-xl p-4 mb-3" style={{ backgroundColor: COLORS.card }}>
         <View
           className="w-11 h-11 rounded-full justify-center items-center"
           style={{ backgroundColor: category.color + '30' }}
