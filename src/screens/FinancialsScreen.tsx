@@ -10,13 +10,13 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Plus, Wallet, ChevronRight } from 'lucide-react-native';
+import { Plus, Wallet } from 'lucide-react-native';
 import AddTransactionModal from '../components/AddTransactionModal';
-import { Transaction, TransactionData, Category } from '../types';
-import { TRANSACTION_CATEGORIES } from '../constants/categories';
+import SwipeableTransactionItem from '../components/SwipeableTransactionItem';
+import { Transaction, TransactionData } from '../types';
 import { COLORS } from '../constants/theme';
 import { formatRelativeDate } from '../utils/dateUtils';
-import { getTransactions, createTransaction } from '../services/transactionService';
+import { getTransactions, createTransaction, deleteTransaction } from '../services/transactionService';
 
 type RootStackParamList = {
   MainTabs: undefined;
@@ -130,8 +130,31 @@ export default function FinancialsScreen(): React.JSX.Element {
     }
   };
 
-  const getCategoryInfo = (categoryName: string): Category => {
-    return TRANSACTION_CATEGORIES.find(c => c.name === categoryName) || TRANSACTION_CATEGORIES[7];
+  const handleDeleteTransaction = async (id: string): Promise<void> => {
+    Alert.alert(
+      'Delete Transaction',
+      'Are you sure you want to delete this transaction?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const success = await deleteTransaction(id);
+              if (success) {
+                setTransactions(transactions.filter(t => t.id !== id));
+              } else {
+                Alert.alert('Error', 'Failed to delete transaction. Please try again.');
+              }
+            } catch (error) {
+              console.error('Error deleting transaction:', error);
+              Alert.alert('Error', 'Failed to delete transaction. Please try again.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   // Group transactions by date
@@ -147,31 +170,13 @@ export default function FinancialsScreen(): React.JSX.Element {
   const sortedDates = Object.keys(groupedTransactions).sort((a, b) => b.localeCompare(a));
 
   const renderTransaction = (item: Transaction): React.JSX.Element => {
-    const category = getCategoryInfo(item.category);
-    const IconComponent = category.icon;
     return (
-      <TouchableOpacity
+      <SwipeableTransactionItem
         key={item.id}
-        className="flex-row items-center rounded-xl p-4 mb-3"
-        style={{ backgroundColor: COLORS.card }}
+        item={item}
         onPress={() => navigation.navigate('ViewTransaction', { transaction: item })}
-        activeOpacity={0.7}
-      >
-        <View
-          className="w-11 h-11 rounded-full justify-center items-center"
-          style={{ backgroundColor: category.color + '30' }}
-        >
-          <IconComponent size={20} color={category.color} />
-        </View>
-        <View className="flex-1 ml-3">
-          <Text style={{ color: COLORS.text.primary }} className="text-base font-medium">{item.title}</Text>
-          <Text style={{ color: COLORS.text.secondary }} className="text-sm mt-0.5">{item.category}</Text>
-        </View>
-        <Text style={{ color: item.type === 'income' ? COLORS.pastel.green : COLORS.pastel.red }} className="text-base font-semibold mr-2">
-          {item.type === 'income' ? '+' : '-'}${item.amount.toFixed(2)}
-        </Text>
-        <ChevronRight size={20} color={COLORS.text.muted} />
-      </TouchableOpacity>
+        onDelete={() => handleDeleteTransaction(item.id)}
+      />
     );
   };
 
