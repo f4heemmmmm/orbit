@@ -223,26 +223,21 @@ export default function FinancialsScreen(): React.JSX.Element {
       {/* Summary Cards */}
       <View className="p-4">
         <View className="rounded-2xl p-5 items-center mb-3" style={{ backgroundColor: COLORS.card }}>
-          <Text style={{ color: COLORS.text.secondary }} className="text-sm mb-1">Total Balance</Text>
+          <Text style={{ color: COLORS.text.secondary }} className="text-base mb-1">Total Balance</Text>
           <Text style={{ color: balance >= 0 ? COLORS.pastel.green : COLORS.pastel.red }} className="text-2xl font-bold">
             ${balance.toFixed(2)}
           </Text>
         </View>
         <View className="flex-row gap-3">
           <View className="flex-1 rounded-2xl p-5 items-center" style={{ backgroundColor: COLORS.card }}>
-            <Text style={{ color: COLORS.text.secondary }} className="text-sm">Income</Text>
+            <Text style={{ color: COLORS.text.secondary }} className="text-base">Income</Text>
             <Text style={{ color: COLORS.pastel.green }} className="text-xl font-bold">${totalIncome.toFixed(2)}</Text>
           </View>
           <View className="flex-1 rounded-2xl p-5 items-center" style={{ backgroundColor: COLORS.card }}>
-            <Text style={{ color: COLORS.text.secondary }} className="text-sm">Expenses</Text>
+            <Text style={{ color: COLORS.text.secondary }} className="text-base">Expenses</Text>
             <Text style={{ color: COLORS.pastel.red }} className="text-xl font-bold">${totalExpenses.toFixed(2)}</Text>
           </View>
         </View>
-      </View>
-
-      {/* Transactions Header */}
-      <View className="px-4 py-2">
-        <Text style={{ color: COLORS.text.primary }} className="text-lg font-semibold">Recent Transactions</Text>
       </View>
 
       <ScrollView
@@ -272,7 +267,7 @@ export default function FinancialsScreen(): React.JSX.Element {
         ) : (
           sortedDates.map(dateKey => (
             <View key={dateKey} className="mb-4">
-              <Text style={{ color: COLORS.text.secondary }} className="text-sm font-semibold mb-2">{formatRelativeDate(dateKey)}</Text>
+              <Text style={{ color: COLORS.text.secondary }} className="text-base font-semibold mb-2">{formatRelativeDate(dateKey)}</Text>
               {groupedTransactions[dateKey].map(transaction => renderTransaction(transaction))}
             </View>
           ))
