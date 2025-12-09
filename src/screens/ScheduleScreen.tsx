@@ -10,6 +10,7 @@ import {
   Alert,
   Keyboard,
   TouchableWithoutFeedback,
+  RefreshControl,
 } from 'react-native';
 import {
   Dumbbell,
@@ -59,6 +60,7 @@ export default function ScheduleScreen(): React.JSX.Element {
   const [selectedType, setSelectedType] = useState<'activity' | 'exam' | 'class' | 'other'>('other');
   const [filterType, setFilterType] = useState<FilterType>('all');
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Fetch events on mount
   useEffect(() => {
@@ -86,6 +88,30 @@ export default function ScheduleScreen(): React.JSX.Element {
       Alert.alert('Error', 'Failed to load events. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const onRefresh = async (): Promise<void> => {
+    try {
+      setRefreshing(true);
+      const data = await getScheduleEvents();
+
+      // Convert database format to app format
+      const formattedEvents: ScheduleEvent[] = data.map(e => ({
+        id: e.id,
+        title: e.title,
+        description: e.description || '',
+        type: e.type,
+        date: e.date,
+        time: e.time,
+      }));
+
+      setEvents(formattedEvents);
+    } catch (error) {
+      console.error('Error refreshing events:', error);
+      Alert.alert('Error', 'Failed to refresh events. Please try again.');
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -280,7 +306,18 @@ export default function ScheduleScreen(): React.JSX.Element {
           <Text style={{ color: '#6b6b80' }} className="text-base mt-3">Loading events...</Text>
         </View>
       ) : (
-        <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
+        <ScrollView
+          className="flex-1 px-4"
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#a0c4ff"
+              colors={['#a0c4ff']}
+            />
+          }
+        >
           {sortedDates.length === 0 ? (
             <View className="items-center justify-center pt-16">
               <Calendar size={48} color="#6b6b80" />

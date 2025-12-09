@@ -12,6 +12,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   ScrollView,
+  RefreshControl,
 } from 'react-native';
 import { CheckSquare, Square, Trash2, Plus } from 'lucide-react-native';
 import { getTasks, createTask, toggleTaskCompletion, deleteTask as deleteTaskService } from '../services/taskService';
@@ -47,6 +48,7 @@ export default function TasksScreen(): React.JSX.Element {
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [filter, setFilter] = useState<FilterType>('all');
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Fetch tasks on mount
   useEffect(() => {
@@ -73,6 +75,29 @@ export default function TasksScreen(): React.JSX.Element {
       Alert.alert('Error', 'Failed to load tasks. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const onRefresh = async (): Promise<void> => {
+    try {
+      setRefreshing(true);
+      const data = await getTasks();
+
+      // Convert database format to app format
+      const formattedTasks: Task[] = data.map(t => ({
+        id: t.id,
+        title: t.title,
+        description: t.description || '',
+        priority: t.priority,
+        completed: t.completed,
+      }));
+
+      setTasks(formattedTasks);
+    } catch (error) {
+      console.error('Error refreshing tasks:', error);
+      Alert.alert('Error', 'Failed to refresh tasks. Please try again.');
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -266,6 +291,14 @@ export default function TasksScreen(): React.JSX.Element {
           keyExtractor={item => item.id}
           className="flex-1 px-4"
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#a0c4ff"
+              colors={['#a0c4ff']}
+            />
+          }
           ListEmptyComponent={
             <View className="items-center justify-center pt-16">
               <CheckSquare size={48} color="#6b6b80" />

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import { Plus, Wallet } from 'lucide-react-native';
 import AddTransactionModal from '../components/AddTransactionModal';
@@ -48,6 +49,31 @@ export default function FinancialsScreen(): React.JSX.Element {
       Alert.alert('Error', 'Failed to load transactions. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const onRefresh = async (): Promise<void> => {
+    try {
+      setRefreshing(true);
+      const data = await getTransactions();
+
+      // Convert database format to app format
+      const formattedTransactions: Transaction[] = data.map(t => ({
+        id: t.id,
+        title: t.title,
+        description: t.description || '',
+        amount: Number(t.amount),
+        type: t.type,
+        category: t.category,
+        date: new Date(t.date).toISOString().split('T')[0],
+      }));
+
+      setTransactions(formattedTransactions);
+    } catch (error) {
+      console.error('Error refreshing transactions:', error);
+      Alert.alert('Error', 'Failed to refresh transactions. Please try again.');
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -159,7 +185,18 @@ export default function FinancialsScreen(): React.JSX.Element {
         <Text style={{ color: COLORS.text.primary }} className="text-lg font-semibold">Recent Transactions</Text>
       </View>
 
-      <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1 px-4"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={COLORS.pastel.blue}
+            colors={[COLORS.pastel.blue]}
+          />
+        }
+      >
         {loading ? (
           <View className="items-center justify-center pt-16">
             <ActivityIndicator size="large" color={COLORS.pastel.blue} />
