@@ -13,6 +13,8 @@ web-build/
 *.p12
 *.key
 *.mobileprovision
+ios/
+android/
 
 # Metro
 .metro-health-check*
@@ -35,17 +37,34 @@ yarn-error.*
 
 # Testing
 coverage/
+__tests__/
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+*.sublime-*
 
 # Logs
-logs
+logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Build artifacts
 build/
+out/
 
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# EAS
+.eas/
+
+# Bundle analysis
+bundle-report.html
+stats.json
