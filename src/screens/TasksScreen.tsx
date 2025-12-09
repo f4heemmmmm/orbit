@@ -9,6 +9,9 @@ import {
   ListRenderItem,
   ActivityIndicator,
   Alert,
+  Keyboard,
+  TouchableWithoutFeedback,
+  ScrollView,
 } from 'react-native';
 import { CheckSquare, Square, Trash2, Plus } from 'lucide-react-native';
 import { getTasks, createTask, toggleTaskCompletion, deleteTask as deleteTaskService } from '../services/taskService';
@@ -284,13 +287,22 @@ export default function TasksScreen(): React.JSX.Element {
 
       {/* Add Task Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
-        <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
-          <View className="rounded-t-3xl p-6" style={{ backgroundColor: '#1a1a2e' }}>
-            <Text style={{ color: '#e8e8e8' }} className="text-xl font-bold mb-5 text-center">New Task</Text>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+            <TouchableWithoutFeedback>
+              <View className="rounded-t-3xl p-6" style={{ backgroundColor: '#1a1a2e' }}>
+                <Text style={{ color: '#e8e8e8' }} className="text-xl font-bold mb-5 text-center">New Task</Text>
 
             <TextInput
-              className="rounded-xl p-4 text-base mb-3"
-              style={{ backgroundColor: '#252540', color: '#e8e8e8' }}
+              className="rounded-xl text-base mb-3"
+              style={{
+                backgroundColor: '#252540',
+                color: '#e8e8e8',
+                paddingVertical: 16,
+                paddingHorizontal: 16,
+                height: 56,
+                textAlignVertical: 'center',
+              }}
               placeholder="Task title"
               placeholderTextColor="#6b6b80"
               value={title}
@@ -298,8 +310,15 @@ export default function TasksScreen(): React.JSX.Element {
             />
 
             <TextInput
-              className="rounded-xl p-4 text-base mb-3 min-h-[80px]"
-              style={{ backgroundColor: '#252540', color: '#e8e8e8', textAlignVertical: 'top' }}
+              className="rounded-xl text-base mb-3"
+              style={{
+                backgroundColor: '#252540',
+                color: '#e8e8e8',
+                paddingVertical: 16,
+                paddingHorizontal: 16,
+                minHeight: 80,
+                textAlignVertical: 'top',
+              }}
               placeholder="Description (optional)"
               placeholderTextColor="#6b6b80"
               value={description}
@@ -344,8 +363,10 @@ export default function TasksScreen(): React.JSX.Element {
                 <Text style={{ color: '#0f0f1a' }} className="text-base font-semibold">Add Task</Text>
               </TouchableOpacity>
             </View>
+              </View>
+            </TouchableWithoutFeedback>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
     </View>
   );

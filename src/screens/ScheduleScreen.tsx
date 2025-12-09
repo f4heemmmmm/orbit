@@ -8,6 +8,8 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import {
   Dumbbell,
@@ -308,13 +310,23 @@ export default function ScheduleScreen(): React.JSX.Element {
 
       {/* Add Event Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
-        <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
-          <View className="rounded-t-3xl p-6 max-h-[85%]" style={{ backgroundColor: '#1a1a2e' }}>
-            <Text style={{ color: '#e8e8e8' }} className="text-xl font-bold mb-5 text-center">New Event</Text>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+            <TouchableWithoutFeedback>
+              <View className="rounded-t-3xl p-6 max-h-[85%]" style={{ backgroundColor: '#1a1a2e' }}>
+                <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+                  <Text style={{ color: '#e8e8e8' }} className="text-xl font-bold mb-5 text-center">New Event</Text>
 
             <TextInput
-              className="rounded-xl p-4 text-base mb-3"
-              style={{ backgroundColor: '#252540', color: '#e8e8e8' }}
+              className="rounded-xl text-base mb-3"
+              style={{
+                backgroundColor: '#252540',
+                color: '#e8e8e8',
+                paddingVertical: 16,
+                paddingHorizontal: 16,
+                height: 56,
+                textAlignVertical: 'center',
+              }}
               placeholder="Event title"
               placeholderTextColor="#6b6b80"
               value={title}
@@ -322,8 +334,15 @@ export default function ScheduleScreen(): React.JSX.Element {
             />
 
             <TextInput
-              className="rounded-xl p-4 text-base mb-3"
-              style={{ backgroundColor: '#252540', color: '#e8e8e8' }}
+              className="rounded-xl text-base mb-3"
+              style={{
+                backgroundColor: '#252540',
+                color: '#e8e8e8',
+                paddingVertical: 16,
+                paddingHorizontal: 16,
+                height: 56,
+                textAlignVertical: 'center',
+              }}
               placeholder="Description (optional)"
               placeholderTextColor="#6b6b80"
               value={description}
@@ -332,16 +351,30 @@ export default function ScheduleScreen(): React.JSX.Element {
 
             <View className="flex-row gap-3">
               <TextInput
-                className="flex-1 rounded-xl p-4 text-base mb-3"
-                style={{ backgroundColor: '#252540', color: '#e8e8e8' }}
+                className="flex-1 rounded-xl text-base mb-3"
+                style={{
+                  backgroundColor: '#252540',
+                  color: '#e8e8e8',
+                  paddingVertical: 16,
+                  paddingHorizontal: 16,
+                  height: 56,
+                  textAlignVertical: 'center',
+                }}
                 placeholder="Date (YYYY-MM-DD)"
                 placeholderTextColor="#6b6b80"
                 value={date}
                 onChangeText={setDate}
               />
               <TextInput
-                className="flex-1 rounded-xl p-4 text-base mb-3"
-                style={{ backgroundColor: '#252540', color: '#e8e8e8' }}
+                className="flex-1 rounded-xl text-base mb-3"
+                style={{
+                  backgroundColor: '#252540',
+                  color: '#e8e8e8',
+                  paddingVertical: 16,
+                  paddingHorizontal: 16,
+                  height: 56,
+                  textAlignVertical: 'center',
+                }}
                 placeholder="Time (HH:MM)"
                 placeholderTextColor="#6b6b80"
                 value={time}
@@ -376,24 +409,27 @@ export default function ScheduleScreen(): React.JSX.Element {
               })}
             </View>
 
-            <View className="flex-row gap-3">
-              <TouchableOpacity
-                className="flex-1 p-4 rounded-xl items-center"
-                style={{ backgroundColor: '#252540' }}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={{ color: '#a0a0b0' }} className="text-base font-semibold">Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="flex-1 p-4 rounded-xl items-center"
-                style={{ backgroundColor: '#a0c4ff' }}
-                onPress={addEvent}
-              >
-                <Text style={{ color: '#0f0f1a' }} className="text-base font-semibold">Add Event</Text>
-              </TouchableOpacity>
-            </View>
+                  <View className="flex-row gap-3 mt-4">
+                    <TouchableOpacity
+                      className="flex-1 p-4 rounded-xl items-center"
+                      style={{ backgroundColor: '#252540' }}
+                      onPress={() => setModalVisible(false)}
+                    >
+                      <Text style={{ color: '#a0a0b0' }} className="text-base font-semibold">Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      className="flex-1 p-4 rounded-xl items-center"
+                      style={{ backgroundColor: '#a0c4ff' }}
+                      onPress={addEvent}
+                    >
+                      <Text style={{ color: '#0f0f1a' }} className="text-base font-semibold">Add Event</Text>
+                    </TouchableOpacity>
+                  </View>
+                </ScrollView>
+              </View>
+            </TouchableWithoutFeedback>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
     </View>
   );

@@ -8,6 +8,8 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { signIn, signUp } from '../services/authService';
 import { COLORS } from '../constants/theme';
@@ -70,23 +72,31 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps): React.JS
       className="flex-1"
       style={{ backgroundColor: COLORS.background }}
     >
-      <View className="flex-1 justify-center px-6">
-        {/* Header */}
-        <View className="items-center mb-10">
-          <Text style={{ color: COLORS.text.primary }} className="text-4xl font-bold mb-2">
-            Orbit
-          </Text>
-          <Text style={{ color: COLORS.text.secondary }} className="text-base">
-            {isSignUp ? 'Create your account' : 'Welcome back'}
-          </Text>
-        </View>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View className="flex-1 justify-center px-6">
+          {/* Header */}
+          <View className="items-center mb-10">
+            <Text style={{ color: COLORS.text.primary }} className="text-4xl font-bold mb-2">
+              Orbit
+            </Text>
+            <Text style={{ color: COLORS.text.secondary }} className="text-base">
+              {isSignUp ? 'Create your account' : 'Welcome back'}
+            </Text>
+          </View>
 
         {/* Form */}
         <View className="gap-4">
           {isSignUp && (
             <TextInput
-              className="rounded-xl p-4 text-base"
-              style={{ backgroundColor: COLORS.card, color: COLORS.text.primary }}
+              className="rounded-xl text-base"
+              style={{
+                backgroundColor: COLORS.card,
+                color: COLORS.text.primary,
+                paddingVertical: 16,
+                paddingHorizontal: 16,
+                height: 56,
+                textAlignVertical: 'center',
+              }}
               placeholder="Full Name"
               placeholderTextColor={COLORS.text.muted}
               value={fullName}
@@ -96,8 +106,15 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps): React.JS
           )}
 
           <TextInput
-            className="rounded-xl p-4 text-base"
-            style={{ backgroundColor: COLORS.card, color: COLORS.text.primary }}
+            className="rounded-xl text-base"
+            style={{
+              backgroundColor: COLORS.card,
+              color: COLORS.text.primary,
+              paddingVertical: 16,
+              paddingHorizontal: 16,
+              height: 56,
+              textAlignVertical: 'center',
+            }}
             placeholder="Email"
             placeholderTextColor={COLORS.text.muted}
             value={email}
@@ -108,8 +125,15 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps): React.JS
           />
 
           <TextInput
-            className="rounded-xl p-4 text-base"
-            style={{ backgroundColor: COLORS.card, color: COLORS.text.primary }}
+            className="rounded-xl text-base"
+            style={{
+              backgroundColor: COLORS.card,
+              color: COLORS.text.primary,
+              paddingVertical: 16,
+              paddingHorizontal: 16,
+              height: 56,
+              textAlignVertical: 'center',
+            }}
             placeholder="Password"
             placeholderTextColor={COLORS.text.muted}
             value={password}
@@ -149,7 +173,8 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps): React.JS
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+        </View>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }

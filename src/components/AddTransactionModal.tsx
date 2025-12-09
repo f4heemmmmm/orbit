@@ -6,6 +6,9 @@ import {
   TextInput,
   Modal,
   Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
+  ScrollView,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { X, Calendar } from 'lucide-react-native';
@@ -75,123 +78,148 @@ export default function AddTransactionModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View className="flex-1 justify-end" style={{ backgroundColor: 'transparent' }}>
-        <View className="rounded-t-3xl p-6 pt-8" style={{ backgroundColor: COLORS.card, height: '92%' }}>
-          <View className="flex-row items-center justify-between mb-5">
-            <Text style={{ color: COLORS.text.primary }} className="text-xl font-bold">
-              Add Transaction
-            </Text>
-            <TouchableOpacity
-              className="p-2"
-              onPress={onClose}
-            >
-              <X size={24} color={COLORS.text.secondary} />
-            </TouchableOpacity>
-          </View>
-          <View className="flex-1">
-            <TextInput
-              className="rounded-xl p-4 text-base mb-3"
-              style={{ backgroundColor: COLORS.surface, color: COLORS.text.primary }}
-              placeholder="Title"
-              placeholderTextColor={COLORS.text.muted}
-              value={title}
-              onChangeText={setTitle}
-            />
-            <TextInput
-              className="rounded-xl p-4 text-base mb-3"
-              style={{ backgroundColor: COLORS.surface, color: COLORS.text.primary }}
-              placeholder="Description (optional)"
-              placeholderTextColor={COLORS.text.muted}
-              value={description}
-              onChangeText={setDescription}
-            />
-            <TextInput
-              className="rounded-xl p-4 text-base mb-3"
-              style={{ backgroundColor: COLORS.surface, color: COLORS.text.primary }}
-              placeholder="Amount"
-              placeholderTextColor={COLORS.text.muted}
-              value={amount}
-              onChangeText={setAmount}
-              keyboardType="numeric"
-            />
-            <TouchableOpacity
-              className="rounded-xl p-4 mb-3 flex-row items-center"
-              style={{ backgroundColor: COLORS.surface }}
-              onPress={() => setShowDatePicker(true)}
-            >
-              <Calendar size={20} color={COLORS.text.secondary} />
-              <Text className="text-base ml-3" style={{ color: COLORS.text.primary }}>
-                {formatDateTime(date)}
-              </Text>
-            </TouchableOpacity>
-            {showDatePicker && (
-              <DateTimePicker
-                value={date}
-                mode={Platform.OS === 'ios' ? 'datetime' : 'date'}
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={onDateChange}
-                themeVariant="dark"
-              />
-            )}
-            {showTimePicker && Platform.OS === 'android' && (
-              <DateTimePicker
-                value={date}
-                mode="time"
-                display="default"
-                onChange={onTimeChange}
-                themeVariant="dark"
-              />
-            )}
-            <View className="flex-row mb-4 gap-3">
-              <TouchableOpacity
-                className="flex-1 p-3 rounded-xl items-center"
-                style={{ backgroundColor: type === 'expense' ? COLORS.pastel.red : COLORS.surface }}
-                onPress={() => setType('expense')}
-              >
-                <Text style={{ color: type === 'expense' ? COLORS.background : COLORS.text.secondary }} className="text-base font-medium">
-                  Expense
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <TouchableWithoutFeedback>
+            <View className="rounded-t-3xl p-6 pt-8" style={{ backgroundColor: COLORS.card, height: '92%' }}>
+              <View className="flex-row items-center justify-between mb-5">
+                <Text style={{ color: COLORS.text.primary }} className="text-xl font-bold">
+                  Add Transaction
                 </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="flex-1 p-3 rounded-xl items-center"
-                style={{ backgroundColor: type === 'income' ? COLORS.pastel.green : COLORS.surface }}
-                onPress={() => setType('income')}
-              >
-                <Text style={{ color: type === 'income' ? COLORS.background : COLORS.text.secondary }} className="text-base font-medium">
-                  Income
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <Text style={{ color: COLORS.text.secondary }} className="text-sm font-medium mb-2">Category</Text>
-            <View className="flex-row flex-wrap mb-5 gap-2">
-              {TRANSACTION_CATEGORIES.map(cat => {
-                const CatIcon = cat.icon;
-                return (
+                <TouchableOpacity
+                  className="p-2"
+                  onPress={onClose}
+                >
+                  <X size={24} color={COLORS.text.secondary} />
+                </TouchableOpacity>
+              </View>
+              <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
+                <TextInput
+                  className="rounded-xl text-base mb-3"
+                  style={{
+                    backgroundColor: COLORS.surface,
+                    color: COLORS.text.primary,
+                    paddingVertical: 16,
+                    paddingHorizontal: 16,
+                    height: 56,
+                    textAlignVertical: 'center',
+                  }}
+                  placeholder="Title"
+                  placeholderTextColor={COLORS.text.muted}
+                  value={title}
+                  onChangeText={setTitle}
+                />
+                <TextInput
+                  className="rounded-xl text-base mb-3"
+                  style={{
+                    backgroundColor: COLORS.surface,
+                    color: COLORS.text.primary,
+                    paddingVertical: 16,
+                    paddingHorizontal: 16,
+                    height: 56,
+                    textAlignVertical: 'center',
+                  }}
+                  placeholder="Description (optional)"
+                  placeholderTextColor={COLORS.text.muted}
+                  value={description}
+                  onChangeText={setDescription}
+                />
+                <TextInput
+                  className="rounded-xl text-base mb-3"
+                  style={{
+                    backgroundColor: COLORS.surface,
+                    color: COLORS.text.primary,
+                    paddingVertical: 16,
+                    paddingHorizontal: 16,
+                    height: 56,
+                    textAlignVertical: 'center',
+                  }}
+                  placeholder="Amount"
+                  placeholderTextColor={COLORS.text.muted}
+                  value={amount}
+                  onChangeText={setAmount}
+                  keyboardType="numeric"
+                />
+                <TouchableOpacity
+                  className="rounded-xl p-4 mb-3 flex-row items-center"
+                  style={{ backgroundColor: COLORS.surface }}
+                  onPress={() => setShowDatePicker(true)}
+                >
+                  <Calendar size={20} color={COLORS.text.secondary} />
+                  <Text className="text-base ml-3" style={{ color: COLORS.text.primary }}>
+                    {formatDateTime(date)}
+                  </Text>
+                </TouchableOpacity>
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={date}
+                    mode={Platform.OS === 'ios' ? 'datetime' : 'date'}
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={onDateChange}
+                    themeVariant="dark"
+                  />
+                )}
+                {showTimePicker && Platform.OS === 'android' && (
+                  <DateTimePicker
+                    value={date}
+                    mode="time"
+                    display="default"
+                    onChange={onTimeChange}
+                    themeVariant="dark"
+                  />
+                )}
+                <View className="flex-row mb-4 gap-3">
                   <TouchableOpacity
-                    key={cat.id}
-                    className="flex-row items-center px-4 py-2.5 rounded-full"
-                    style={{ backgroundColor: selectedCategory === cat.name ? cat.color : COLORS.surface }}
-                    onPress={() => setSelectedCategory(cat.name)}
+                    className="flex-1 p-3 rounded-xl items-center"
+                    style={{ backgroundColor: type === 'expense' ? COLORS.pastel.red : COLORS.surface }}
+                    onPress={() => setType('expense')}
                   >
-                    <CatIcon size={20} color={selectedCategory === cat.name ? COLORS.background : cat.color} />
-                    <Text className="text-sm ml-1.5" style={{ color: selectedCategory === cat.name ? COLORS.background : COLORS.text.secondary }}>
-                      {cat.name}
+                    <Text style={{ color: type === 'expense' ? COLORS.background : COLORS.text.secondary }} className="text-base font-medium">
+                      Expense
                     </Text>
                   </TouchableOpacity>
-                );
-              })}
+                  <TouchableOpacity
+                    className="flex-1 p-3 rounded-xl items-center"
+                    style={{ backgroundColor: type === 'income' ? COLORS.pastel.green : COLORS.surface }}
+                    onPress={() => setType('income')}
+                  >
+                    <Text style={{ color: type === 'income' ? COLORS.background : COLORS.text.secondary }} className="text-base font-medium">
+                      Income
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={{ color: COLORS.text.secondary }} className="text-sm font-medium mb-2">Category</Text>
+                <View className="flex-row flex-wrap mb-5 gap-2">
+                  {TRANSACTION_CATEGORIES.map(cat => {
+                    const CatIcon = cat.icon;
+                    return (
+                      <TouchableOpacity
+                        key={cat.id}
+                        className="flex-row items-center px-4 py-2.5 rounded-full"
+                        style={{ backgroundColor: selectedCategory === cat.name ? cat.color : COLORS.surface }}
+                        onPress={() => setSelectedCategory(cat.name)}
+                      >
+                        <CatIcon size={20} color={selectedCategory === cat.name ? COLORS.background : cat.color} />
+                        <Text className="text-sm ml-1.5" style={{ color: selectedCategory === cat.name ? COLORS.background : COLORS.text.secondary }}>
+                          {cat.name}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+              <View className="flex-row gap-3 pb-8">
+                <TouchableOpacity className="flex-1 p-4 rounded-xl items-center" style={{ backgroundColor: COLORS.surface }} onPress={onClose}>
+                  <Text style={{ color: COLORS.text.secondary }} className="text-base font-semibold">Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity className="flex-1 p-4 rounded-xl items-center" style={{ backgroundColor: COLORS.pastel.blue }} onPress={handleAdd}>
+                  <Text style={{ color: COLORS.background }} className="text-base font-semibold">Add</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-          <View className="flex-row gap-3 pb-8">
-            <TouchableOpacity className="flex-1 p-4 rounded-xl items-center" style={{ backgroundColor: COLORS.surface }} onPress={onClose}>
-              <Text style={{ color: COLORS.text.secondary }} className="text-base font-semibold">Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity className="flex-1 p-4 rounded-xl items-center" style={{ backgroundColor: COLORS.pastel.blue }} onPress={handleAdd}>
-              <Text style={{ color: COLORS.background }} className="text-base font-semibold">Add</Text>
-            </TouchableOpacity>
-          </View>
+          </TouchableWithoutFeedback>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 }
