@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Wallet, CheckSquare, Calendar, LogOut } from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
 import { TouchableOpacity, Alert, ActivityIndicator, View } from 'react-native';
 
 import FinancialsScreen from './src/screens/FinancialsScreen';
+import ViewTransactionScreen, { FinancialsStackParamList } from './src/screens/ViewTransactionScreen';
 import TasksScreen from './src/screens/TasksScreen';
 import ScheduleScreen from './src/screens/ScheduleScreen';
 import AuthScreen from './src/screens/AuthScreen';
@@ -20,7 +22,15 @@ type TabParamList = {
   Schedule: undefined;
 };
 
+type RootStackParamList = {
+  MainTabs: undefined;
+  ViewTransaction: { transaction: FinancialsStackParamList['ViewTransaction']['transaction'] };
+};
+
 const Tab = createBottomTabNavigator<TabParamList>();
+const RootStack = createNativeStackNavigator<RootStackParamList>();
+
+export { RootStackParamList };
 
 export default function App(): React.JSX.Element {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -80,60 +90,72 @@ export default function App(): React.JSX.Element {
     );
   }
 
+  // Tab Navigator Component
+  const MainTabs = (): React.JSX.Element => (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ color, size }) => {
+          if (route.name === 'Financials') {
+            return <Wallet size={size} color={color} />;
+          } else if (route.name === 'Tasks') {
+            return <CheckSquare size={size} color={color} />;
+          } else {
+            return <Calendar size={size} color={color} />;
+          }
+        },
+        tabBarActiveTintColor: '#a0c4ff',
+        tabBarInactiveTintColor: '#6b6b80',
+        tabBarStyle: {
+          backgroundColor: '#1a1a2e',
+          borderTopColor: '#252540',
+        },
+        headerStyle: {
+          backgroundColor: '#1a1a2e',
+        },
+        headerTintColor: '#e8e8e8',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+        headerRight: () => (
+          <TouchableOpacity
+            onPress={handleSignOut}
+            style={{ marginRight: 15 }}
+          >
+            <LogOut size={22} color="#e8e8e8" />
+          </TouchableOpacity>
+        ),
+      })}
+    >
+      <Tab.Screen
+        name="Financials"
+        component={FinancialsScreen}
+        options={{ title: 'Financials' }}
+      />
+      <Tab.Screen
+        name="Tasks"
+        component={TasksScreen}
+        options={{ title: 'Tasks' }}
+      />
+      <Tab.Screen
+        name="Schedule"
+        component={ScheduleScreen}
+        options={{ title: 'Schedule' }}
+      />
+    </Tab.Navigator>
+  );
+
   // Show main app if authenticated
   return (
     <NavigationContainer>
       <StatusBar style="light" />
-      <Tab.Navigator
-        screenOptions={({ route }) => ({
-          tabBarIcon: ({ color, size }) => {
-            if (route.name === 'Financials') {
-              return <Wallet size={size} color={color} />;
-            } else if (route.name === 'Tasks') {
-              return <CheckSquare size={size} color={color} />;
-            } else {
-              return <Calendar size={size} color={color} />;
-            }
-          },
-          tabBarActiveTintColor: '#a0c4ff',
-          tabBarInactiveTintColor: '#6b6b80',
-          tabBarStyle: {
-            backgroundColor: '#1a1a2e',
-            borderTopColor: '#252540',
-          },
-          headerStyle: {
-            backgroundColor: '#1a1a2e',
-          },
-          headerTintColor: '#e8e8e8',
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={handleSignOut}
-              style={{ marginRight: 15 }}
-            >
-              <LogOut size={22} color="#e8e8e8" />
-            </TouchableOpacity>
-          ),
-        })}
-      >
-        <Tab.Screen
-          name="Financials"
-          component={FinancialsScreen}
-          options={{ title: 'Financials' }}
+      <RootStack.Navigator screenOptions={{ headerShown: false }}>
+        <RootStack.Screen name="MainTabs" component={MainTabs} />
+        <RootStack.Screen
+          name="ViewTransaction"
+          component={ViewTransactionScreen}
+          options={{ animation: 'slide_from_right' }}
         />
-        <Tab.Screen
-          name="Tasks"
-          component={TasksScreen}
-          options={{ title: 'Tasks' }}
-        />
-        <Tab.Screen
-          name="Schedule"
-          component={ScheduleScreen}
-          options={{ title: 'Schedule' }}
-        />
-      </Tab.Navigator>
+      </RootStack.Navigator>
     </NavigationContainer>
   );
 }

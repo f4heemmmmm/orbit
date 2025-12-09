@@ -8,7 +8,9 @@ import {
   Alert,
   RefreshControl,
 } from 'react-native';
-import { Plus, Wallet } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Plus, Wallet, ChevronRight } from 'lucide-react-native';
 import AddTransactionModal from '../components/AddTransactionModal';
 import { Transaction, TransactionData, Category } from '../types';
 import { TRANSACTION_CATEGORIES } from '../constants/categories';
@@ -16,7 +18,15 @@ import { COLORS } from '../constants/theme';
 import { formatRelativeDate } from '../utils/dateUtils';
 import { getTransactions, createTransaction } from '../services/transactionService';
 
+type RootStackParamList = {
+  MainTabs: undefined;
+  ViewTransaction: { transaction: Transaction };
+};
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
 export default function FinancialsScreen(): React.JSX.Element {
+  const navigation = useNavigation<NavigationProp>();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -140,7 +150,13 @@ export default function FinancialsScreen(): React.JSX.Element {
     const category = getCategoryInfo(item.category);
     const IconComponent = category.icon;
     return (
-      <View key={item.id} className="flex-row items-center rounded-xl p-4 mb-3" style={{ backgroundColor: COLORS.card }}>
+      <TouchableOpacity
+        key={item.id}
+        className="flex-row items-center rounded-xl p-4 mb-3"
+        style={{ backgroundColor: COLORS.card }}
+        onPress={() => navigation.navigate('ViewTransaction', { transaction: item })}
+        activeOpacity={0.7}
+      >
         <View
           className="w-11 h-11 rounded-full justify-center items-center"
           style={{ backgroundColor: category.color + '30' }}
@@ -151,10 +167,11 @@ export default function FinancialsScreen(): React.JSX.Element {
           <Text style={{ color: COLORS.text.primary }} className="text-base font-medium">{item.title}</Text>
           <Text style={{ color: COLORS.text.secondary }} className="text-sm mt-0.5">{item.category}</Text>
         </View>
-        <Text style={{ color: item.type === 'income' ? COLORS.pastel.green : COLORS.pastel.red }} className="text-base font-semibold">
+        <Text style={{ color: item.type === 'income' ? COLORS.pastel.green : COLORS.pastel.red }} className="text-base font-semibold mr-2">
           {item.type === 'income' ? '+' : '-'}${item.amount.toFixed(2)}
         </Text>
-      </View>
+        <ChevronRight size={20} color={COLORS.text.muted} />
+      </TouchableOpacity>
     );
   };
 
