@@ -13,6 +13,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import {
+  type LucideIcon,
   Dumbbell,
   FileText,
   GraduationCap,
@@ -20,9 +21,13 @@ import {
   XCircle,
   Plus,
   Calendar,
-  LucideIcon,
 } from 'lucide-react-native';
-import { getScheduleEvents, createScheduleEvent, deleteScheduleEvent } from '../services/scheduleService';
+import {
+  getScheduleEvents,
+  createScheduleEvent,
+  deleteScheduleEvent,
+} from '../services/scheduleService';
+import { COLORS } from '../constants/theme';
 
 interface EventType {
   id: 'activity' | 'exam' | 'class' | 'other';
@@ -42,10 +47,10 @@ interface ScheduleEvent {
 
 // Pastel colors for dark mode
 const EVENT_TYPES: EventType[] = [
-  { id: 'activity', label: 'Activity', icon: Dumbbell, color: '#bdb2ff' },
-  { id: 'exam', label: 'Exam', icon: FileText, color: '#f5a0a0' },
-  { id: 'class', label: 'Class', icon: GraduationCap, color: '#a0c4ff' },
-  { id: 'other', label: 'Other', icon: MoreHorizontal, color: '#9bf6e3' },
+  { id: 'activity', label: 'Activity', icon: Dumbbell, color: COLORS.pastel.purple },
+  { id: 'exam', label: 'Exam', icon: FileText, color: COLORS.pastel.red },
+  { id: 'class', label: 'Class', icon: GraduationCap, color: COLORS.pastel.blue },
+  { id: 'other', label: 'Other', icon: MoreHorizontal, color: COLORS.pastel.teal },
 ];
 
 type FilterType = 'all' | 'activity' | 'exam' | 'class' | 'other';
@@ -57,7 +62,9 @@ export default function ScheduleScreen(): React.JSX.Element {
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
-  const [selectedType, setSelectedType] = useState<'activity' | 'exam' | 'class' | 'other'>('other');
+  const [selectedType, setSelectedType] = useState<'activity' | 'exam' | 'class' | 'other'>(
+    'other'
+  );
   const [filterType, setFilterType] = useState<FilterType>('all');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -116,7 +123,9 @@ export default function ScheduleScreen(): React.JSX.Element {
   };
 
   const addEvent = async (): Promise<void> => {
-    if (!title.trim() || !date.trim() || !time.trim()) return;
+    if (!title.trim() || !date.trim() || !time.trim()) {
+      return;
+    }
 
     try {
       const newEvent = await createScheduleEvent({
@@ -140,7 +149,9 @@ export default function ScheduleScreen(): React.JSX.Element {
 
         // Add and sort events
         const updatedEvents = [...events, formattedEvent].sort((a, b) => {
-          if (a.date !== b.date) return a.date.localeCompare(b.date);
+          if (a.date !== b.date) {
+            return a.date.localeCompare(b.date);
+          }
           return a.time.localeCompare(b.time);
         });
 
@@ -184,9 +195,7 @@ export default function ScheduleScreen(): React.JSX.Element {
     return EVENT_TYPES.find(t => t.id === typeId) || EVENT_TYPES[3];
   };
 
-  const filteredEvents = filterType === 'all' 
-    ? events 
-    : events.filter(e => e.type === filterType);
+  const filteredEvents = filterType === 'all' ? events : events.filter(e => e.type === filterType);
 
   // Group events by date
   const groupedEvents = filteredEvents.reduce<Record<string, ScheduleEvent[]>>((groups, event) => {
@@ -210,11 +219,17 @@ export default function ScheduleScreen(): React.JSX.Element {
     return (
       <View key={item.id} className="flex-row mb-3">
         <View className="w-12 pt-3">
-          <Text style={{ color: '#a0a0b0' }} className="text-sm font-semibold">{item.time}</Text>
+          <Text style={{ color: COLORS.text.secondary }} className="text-sm font-semibold">
+            {item.time}
+          </Text>
         </View>
         <View
           className="flex-1 rounded-xl p-3.5"
-          style={{ backgroundColor: '#1a1a2e', borderLeftWidth: 4, borderLeftColor: typeInfo.color }}
+          style={{
+            backgroundColor: COLORS.card,
+            borderLeftWidth: 4,
+            borderLeftColor: typeInfo.color,
+          }}
         >
           <View className="flex-row items-center">
             <View
@@ -224,15 +239,21 @@ export default function ScheduleScreen(): React.JSX.Element {
               <IconComponent size={18} color={typeInfo.color} />
             </View>
             <View className="flex-1 ml-3">
-              <Text style={{ color: '#e8e8e8' }} className="text-base font-medium">{item.title}</Text>
-              <Text style={{ color: '#a0a0b0' }} className="text-xs mt-0.5">{typeInfo.label}</Text>
+              <Text style={{ color: COLORS.text.primary }} className="text-base font-medium">
+                {item.title}
+              </Text>
+              <Text style={{ color: COLORS.text.secondary }} className="text-xs mt-0.5">
+                {typeInfo.label}
+              </Text>
             </View>
             <TouchableOpacity onPress={() => deleteEvent(item.id)} className="p-1">
-              <XCircle size={22} color="#6b6b80" />
+              <XCircle size={22} color={COLORS.text.muted} />
             </TouchableOpacity>
           </View>
           {item.description ? (
-            <Text style={{ color: '#a0a0b0' }} className="text-sm mt-2 ml-12">{item.description}</Text>
+            <Text style={{ color: COLORS.text.secondary }} className="text-sm mt-2 ml-12">
+              {item.description}
+            </Text>
           ) : null}
         </View>
       </View>
@@ -245,7 +266,7 @@ export default function ScheduleScreen(): React.JSX.Element {
   }, {});
 
   return (
-    <View className="flex-1" style={{ backgroundColor: '#0f0f1a' }}>
+    <View className="flex-1" style={{ backgroundColor: COLORS.background }}>
       {/* Type Stats */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="max-h-24">
         <View className="flex-row p-4 gap-3">
@@ -255,11 +276,15 @@ export default function ScheduleScreen(): React.JSX.Element {
               <View
                 key={type.id}
                 className="rounded-2xl p-4 items-center min-w-[80px]"
-                style={{ backgroundColor: '#1a1a2e', borderWidth: 2, borderColor: type.color }}
+                style={{ backgroundColor: COLORS.card, borderWidth: 2, borderColor: type.color }}
               >
                 <TypeIcon size={24} color={type.color} />
-                <Text style={{ color: '#e8e8e8' }} className="text-xl font-bold mt-1">{typeCounts[type.id]}</Text>
-                <Text style={{ color: '#a0a0b0' }} className="text-xs mt-0.5">{type.label}</Text>
+                <Text style={{ color: COLORS.text.primary }} className="text-xl font-bold mt-1">
+                  {typeCounts[type.id]}
+                </Text>
+                <Text style={{ color: COLORS.text.secondary }} className="text-xs mt-0.5">
+                  {type.label}
+                </Text>
               </View>
             );
           })}
@@ -271,12 +296,12 @@ export default function ScheduleScreen(): React.JSX.Element {
         <View className="flex-row px-4 gap-2">
           <TouchableOpacity
             className="px-4 py-2 rounded-full"
-            style={{ backgroundColor: filterType === 'all' ? '#a0c4ff' : '#1a1a2e' }}
+            style={{ backgroundColor: filterType === 'all' ? COLORS.pastel.blue : COLORS.card }}
             onPress={() => setFilterType('all')}
           >
             <Text
               className="text-sm font-medium"
-              style={{ color: filterType === 'all' ? '#0f0f1a' : '#a0a0b0' }}
+              style={{ color: filterType === 'all' ? COLORS.background : COLORS.text.secondary }}
             >
               All
             </Text>
@@ -285,12 +310,14 @@ export default function ScheduleScreen(): React.JSX.Element {
             <TouchableOpacity
               key={type.id}
               className="px-4 py-2 rounded-full"
-              style={{ backgroundColor: filterType === type.id ? type.color : '#1a1a2e' }}
+              style={{ backgroundColor: filterType === type.id ? type.color : COLORS.card }}
               onPress={() => setFilterType(type.id)}
             >
               <Text
                 className="text-sm font-medium"
-                style={{ color: filterType === type.id ? '#0f0f1a' : '#a0a0b0' }}
+                style={{
+                  color: filterType === type.id ? COLORS.background : COLORS.text.secondary,
+                }}
               >
                 {type.label}
               </Text>
@@ -302,8 +329,10 @@ export default function ScheduleScreen(): React.JSX.Element {
       {/* Events List */}
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#a0c4ff" />
-          <Text style={{ color: '#6b6b80' }} className="text-base mt-3">Loading events...</Text>
+          <ActivityIndicator size="large" color={COLORS.pastel.blue} />
+          <Text style={{ color: COLORS.text.muted }} className="text-base mt-3">
+            Loading events...
+          </Text>
         </View>
       ) : (
         <ScrollView
@@ -314,21 +343,30 @@ export default function ScheduleScreen(): React.JSX.Element {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor="#a0c4ff"
-              colors={['#a0c4ff']}
+              tintColor={COLORS.pastel.blue}
+              colors={[COLORS.pastel.blue]}
             />
           }
         >
           {sortedDates.length === 0 ? (
             <View className="items-center justify-center pt-16">
-              <Calendar size={48} color="#6b6b80" />
-              <Text style={{ color: '#6b6b80' }} className="text-base mt-3">No events scheduled</Text>
-              <Text style={{ color: '#6b6b80' }} className="text-sm mt-1">Tap + to add your first event</Text>
+              <Calendar size={48} color={COLORS.text.muted} />
+              <Text style={{ color: COLORS.text.muted }} className="text-base mt-3">
+                No events scheduled
+              </Text>
+              <Text style={{ color: COLORS.text.muted }} className="text-sm mt-1">
+                Tap + to add your first event
+              </Text>
             </View>
           ) : (
             sortedDates.map(dateKey => (
               <View key={dateKey} className="mb-5">
-                <Text style={{ color: '#e8e8e8' }} className="text-base font-semibold mb-3">{formatDate(dateKey)}</Text>
+                <Text
+                  style={{ color: COLORS.text.primary }}
+                  className="text-base font-semibold mb-3"
+                >
+                  {formatDate(dateKey)}
+                </Text>
                 {groupedEvents[dateKey].map(event => renderEvent(event))}
               </View>
             ))
@@ -340,10 +378,10 @@ export default function ScheduleScreen(): React.JSX.Element {
       {/* Add Button */}
       <TouchableOpacity
         className="absolute right-5 bottom-5 w-14 h-14 rounded-full justify-center items-center shadow-lg"
-        style={{ backgroundColor: '#a0c4ff' }}
+        style={{ backgroundColor: COLORS.pastel.blue }}
         onPress={() => setModalVisible(true)}
       >
-        <Plus size={30} color="#0f0f1a" />
+        <Plus size={30} color={COLORS.background} />
       </TouchableOpacity>
 
       {/* Add Event Modal */}
@@ -351,124 +389,158 @@ export default function ScheduleScreen(): React.JSX.Element {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
             <TouchableWithoutFeedback>
-              <View className="rounded-t-3xl p-6 max-h-[85%]" style={{ backgroundColor: '#1a1a2e' }}>
-                <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={false}>
-                  <Text style={{ color: '#e8e8e8' }} className="text-xl font-bold mb-5 text-center">New Event</Text>
-
-            <TextInput
-              className="rounded-xl mb-3"
-              style={{
-                backgroundColor: '#252540',
-                color: '#e8e8e8',
-                paddingHorizontal: 16,
-                paddingVertical: 0,
-                height: 56,
-                fontSize: 16,
-                lineHeight: 20,
-                includeFontPadding: false,
-              }}
-              placeholder="Event title"
-              placeholderTextColor="#6b6b80"
-              value={title}
-              onChangeText={setTitle}
-            />
-
-            <TextInput
-              className="rounded-xl mb-3"
-              style={{
-                backgroundColor: '#252540',
-                color: '#e8e8e8',
-                paddingHorizontal: 16,
-                paddingVertical: 0,
-                height: 56,
-                fontSize: 16,
-                lineHeight: 20,
-                includeFontPadding: false,
-              }}
-              placeholder="Description (optional)"
-              placeholderTextColor="#6b6b80"
-              value={description}
-              onChangeText={setDescription}
-            />
-
-            <View className="flex-row gap-3">
-              <TextInput
-                className="flex-1 rounded-xl mb-3"
-                style={{
-                  backgroundColor: '#252540',
-                  color: '#e8e8e8',
-                  paddingHorizontal: 16,
-                  paddingVertical: 0,
-                  height: 56,
-                  fontSize: 16,
-                  lineHeight: 20,
-                  includeFontPadding: false,
-                }}
-                placeholder="Date (YYYY-MM-DD)"
-                placeholderTextColor="#6b6b80"
-                value={date}
-                onChangeText={setDate}
-              />
-              <TextInput
-                className="flex-1 rounded-xl mb-3"
-                style={{
-                  backgroundColor: '#252540',
-                  color: '#e8e8e8',
-                  paddingHorizontal: 16,
-                  paddingVertical: 0,
-                  height: 56,
-                  fontSize: 16,
-                  lineHeight: 20,
-                  includeFontPadding: false,
-                }}
-                placeholder="Time (HH:MM)"
-                placeholderTextColor="#6b6b80"
-                value={time}
-                onChangeText={setTime}
-              />
-            </View>
-
-            {/* Type Selection */}
-            <Text style={{ color: '#a0a0b0' }} className="text-sm font-medium mb-2">Event Type</Text>
-            <View className="flex-row flex-wrap gap-2.5 mb-5">
-              {EVENT_TYPES.map(type => {
-                const TypeIcon = type.icon;
-                return (
-                  <TouchableOpacity
-                    key={type.id}
-                    className="flex-row items-center px-3.5 py-2.5 rounded-xl"
-                    style={{ backgroundColor: selectedType === type.id ? type.color : '#252540' }}
-                    onPress={() => setSelectedType(type.id)}
+              <View
+                className="rounded-t-3xl p-6 max-h-[85%]"
+                style={{ backgroundColor: COLORS.card }}
+              >
+                <ScrollView
+                  keyboardShouldPersistTaps="handled"
+                  keyboardDismissMode="on-drag"
+                  showsVerticalScrollIndicator={false}
+                >
+                  <Text
+                    style={{ color: COLORS.text.primary }}
+                    className="text-xl font-bold mb-5 text-center"
                   >
-                    <TypeIcon
-                      size={20}
-                      color={selectedType === type.id ? '#0f0f1a' : type.color}
+                    New Event
+                  </Text>
+
+                  <TextInput
+                    className="rounded-xl mb-3"
+                    style={{
+                      backgroundColor: COLORS.surface,
+                      color: COLORS.text.primary,
+                      paddingHorizontal: 16,
+                      paddingVertical: 0,
+                      height: 56,
+                      fontSize: 16,
+                      lineHeight: 20,
+                      includeFontPadding: false,
+                    }}
+                    placeholder="Event title"
+                    placeholderTextColor={COLORS.text.muted}
+                    value={title}
+                    onChangeText={setTitle}
+                  />
+
+                  <TextInput
+                    className="rounded-xl mb-3"
+                    style={{
+                      backgroundColor: COLORS.surface,
+                      color: COLORS.text.primary,
+                      paddingHorizontal: 16,
+                      paddingVertical: 0,
+                      height: 56,
+                      fontSize: 16,
+                      lineHeight: 20,
+                      includeFontPadding: false,
+                    }}
+                    placeholder="Description (optional)"
+                    placeholderTextColor={COLORS.text.muted}
+                    value={description}
+                    onChangeText={setDescription}
+                  />
+
+                  <View className="flex-row gap-3">
+                    <TextInput
+                      className="flex-1 rounded-xl mb-3"
+                      style={{
+                        backgroundColor: COLORS.surface,
+                        color: COLORS.text.primary,
+                        paddingHorizontal: 16,
+                        paddingVertical: 0,
+                        height: 56,
+                        fontSize: 16,
+                        lineHeight: 20,
+                        includeFontPadding: false,
+                      }}
+                      placeholder="Date (YYYY-MM-DD)"
+                      placeholderTextColor={COLORS.text.muted}
+                      value={date}
+                      onChangeText={setDate}
                     />
-                    <Text
-                      className="text-sm font-medium ml-1.5"
-                      style={{ color: selectedType === type.id ? '#0f0f1a' : '#a0a0b0' }}
-                    >
-                      {type.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+                    <TextInput
+                      className="flex-1 rounded-xl mb-3"
+                      style={{
+                        backgroundColor: COLORS.surface,
+                        color: COLORS.text.primary,
+                        paddingHorizontal: 16,
+                        paddingVertical: 0,
+                        height: 56,
+                        fontSize: 16,
+                        lineHeight: 20,
+                        includeFontPadding: false,
+                      }}
+                      placeholder="Time (HH:MM)"
+                      placeholderTextColor={COLORS.text.muted}
+                      value={time}
+                      onChangeText={setTime}
+                    />
+                  </View>
+
+                  {/* Type Selection */}
+                  <Text
+                    style={{ color: COLORS.text.secondary }}
+                    className="text-sm font-medium mb-2"
+                  >
+                    Event Type
+                  </Text>
+                  <View className="flex-row flex-wrap gap-2.5 mb-5">
+                    {EVENT_TYPES.map(type => {
+                      const TypeIcon = type.icon;
+                      return (
+                        <TouchableOpacity
+                          key={type.id}
+                          className="flex-row items-center px-3.5 py-2.5 rounded-xl"
+                          style={{
+                            backgroundColor: selectedType === type.id ? type.color : COLORS.surface,
+                          }}
+                          onPress={() => setSelectedType(type.id)}
+                        >
+                          <TypeIcon
+                            size={20}
+                            color={selectedType === type.id ? COLORS.background : type.color}
+                          />
+                          <Text
+                            className="text-sm font-medium ml-1.5"
+                            style={{
+                              color:
+                                selectedType === type.id
+                                  ? COLORS.background
+                                  : COLORS.text.secondary,
+                            }}
+                          >
+                            {type.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
 
                   <View className="flex-row gap-3 mt-4">
                     <TouchableOpacity
                       className="flex-1 p-4 rounded-xl items-center"
-                      style={{ backgroundColor: '#252540' }}
+                      style={{ backgroundColor: COLORS.surface }}
                       onPress={() => setModalVisible(false)}
                     >
-                      <Text style={{ color: '#a0a0b0' }} className="text-base font-semibold">Cancel</Text>
+                      <Text
+                        style={{ color: COLORS.text.secondary }}
+                        className="text-base font-semibold"
+                      >
+                        Cancel
+                      </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       className="flex-1 p-4 rounded-xl items-center"
-                      style={{ backgroundColor: '#a0c4ff' }}
+                      style={{ backgroundColor: COLORS.pastel.blue }}
                       onPress={addEvent}
                     >
-                      <Text style={{ color: '#0f0f1a' }} className="text-base font-semibold">Add Event</Text>
+                      <Text
+                        style={{ color: COLORS.background }}
+                        className="text-base font-semibold"
+                      >
+                        Add Event
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 </ScrollView>
@@ -480,4 +552,3 @@ export default function ScheduleScreen(): React.JSX.Element {
     </View>
   );
 }
-

@@ -5,7 +5,7 @@
 
 import { supabase } from '../lib/supabase';
 import { getCurrentUserId } from './authService';
-import { Database } from '../types/database';
+import type { Database } from '../types/database';
 
 type TaskRow = Database['public']['Tables']['tasks']['Row'];
 type TaskInsert = Database['public']['Tables']['tasks']['Insert'];
@@ -17,7 +17,9 @@ type TaskUpdate = Database['public']['Tables']['tasks']['Update'];
 export async function getTasks(): Promise<TaskRow[]> {
   try {
     const userId = await getCurrentUserId();
-    if (!userId) throw new Error('No user logged in');
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
 
     const { data, error } = await supabase
       .from('tasks')
@@ -25,7 +27,9 @@ export async function getTasks(): Promise<TaskRow[]> {
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     return data || [];
   } catch (error) {
     console.error('Error fetching tasks:', error);
@@ -41,7 +45,9 @@ export async function createTask(
 ): Promise<TaskRow | null> {
   try {
     const userId = await getCurrentUserId();
-    if (!userId) throw new Error('No user logged in');
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
 
     const { data, error } = await supabase
       .from('tasks')
@@ -52,7 +58,9 @@ export async function createTask(
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     return data;
   } catch (error) {
     console.error('Error creating task:', error);
@@ -63,13 +71,12 @@ export async function createTask(
 /**
  * Update an existing task
  */
-export async function updateTask(
-  id: string,
-  updates: TaskUpdate
-): Promise<TaskRow | null> {
+export async function updateTask(id: string, updates: TaskUpdate): Promise<TaskRow | null> {
   try {
     const userId = await getCurrentUserId();
-    if (!userId) throw new Error('No user logged in');
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
 
     const { data, error } = await supabase
       .from('tasks')
@@ -79,7 +86,9 @@ export async function updateTask(
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     return data;
   } catch (error) {
     console.error('Error updating task:', error);
@@ -93,7 +102,9 @@ export async function updateTask(
 export async function toggleTaskCompletion(id: string): Promise<TaskRow | null> {
   try {
     const userId = await getCurrentUserId();
-    if (!userId) throw new Error('No user logged in');
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
 
     // First get the current task
     const { data: currentTask, error: fetchError } = await supabase
@@ -103,7 +114,9 @@ export async function toggleTaskCompletion(id: string): Promise<TaskRow | null> 
       .eq('user_id', userId)
       .single();
 
-    if (fetchError) throw fetchError;
+    if (fetchError) {
+      throw fetchError;
+    }
 
     // Toggle the completion status
     const { data, error } = await supabase
@@ -114,7 +127,9 @@ export async function toggleTaskCompletion(id: string): Promise<TaskRow | null> 
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     return data;
   } catch (error) {
     console.error('Error toggling task completion:', error);
@@ -128,15 +143,15 @@ export async function toggleTaskCompletion(id: string): Promise<TaskRow | null> 
 export async function deleteTask(id: string): Promise<boolean> {
   try {
     const userId = await getCurrentUserId();
-    if (!userId) throw new Error('No user logged in');
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
 
-    const { error } = await supabase
-      .from('tasks')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', userId); // Ensure user owns this task
+    const { error } = await supabase.from('tasks').delete().eq('id', id).eq('user_id', userId); // Ensure user owns this task
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     return true;
   } catch (error) {
     console.error('Error deleting task:', error);
@@ -150,7 +165,9 @@ export async function deleteTask(id: string): Promise<boolean> {
 export async function getTasksByStatus(completed: boolean): Promise<TaskRow[]> {
   try {
     const userId = await getCurrentUserId();
-    if (!userId) throw new Error('No user logged in');
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
 
     const { data, error } = await supabase
       .from('tasks')
@@ -159,11 +176,12 @@ export async function getTasksByStatus(completed: boolean): Promise<TaskRow[]> {
       .eq('completed', completed)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     return data || [];
   } catch (error) {
     console.error('Error fetching tasks by status:', error);
     return [];
   }
 }
-

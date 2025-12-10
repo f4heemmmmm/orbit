@@ -11,7 +11,7 @@ import {
   FileText,
   GraduationCap,
 } from 'lucide-react-native';
-import { Category, Priority, EventType } from '../types';
+import type { Category, Priority, EventType } from '../types';
 import { COLORS } from './theme';
 
 /**
@@ -23,7 +23,12 @@ export const TRANSACTION_CATEGORIES: Category[] = [
   { id: 'Bills', name: 'Bills', icon: Receipt, color: COLORS.category.bills },
   { id: 'Salary', name: 'Salary', icon: Banknote, color: COLORS.category.salary },
   { id: 'Shopping', name: 'Shopping', icon: ShoppingBag, color: COLORS.category.shopping },
-  { id: 'Entertainment', name: 'Entertainment', icon: Gamepad2, color: COLORS.category.entertainment },
+  {
+    id: 'Entertainment',
+    name: 'Entertainment',
+    icon: Gamepad2,
+    color: COLORS.category.entertainment,
+  },
   { id: 'Health', name: 'Health', icon: HeartPulse, color: COLORS.category.health },
   { id: 'Other', name: 'Other', icon: MoreHorizontal, color: COLORS.category.other },
 ];
@@ -46,4 +51,3 @@ export const SCHEDULE_EVENT_TYPES: EventType[] = [
   { id: 'class', label: 'Class', icon: GraduationCap, color: COLORS.pastel.blue },
   { id: 'other', label: 'Other', icon: MoreHorizontal, color: COLORS.pastel.teal },
 ];
-

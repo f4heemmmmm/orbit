@@ -31,7 +31,7 @@ export function validateEnv(): void {
   if (missing.length > 0) {
     console.warn(
       `⚠️  Missing environment variables: ${missing.join(', ')}\n` +
-      'Please check your .env file and make sure all required variables are set.'
+        'Please check your .env file and make sure all required variables are set.'
     );
   }
 }

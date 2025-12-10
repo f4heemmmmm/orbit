@@ -1,7 +1,15 @@
-import { LucideIcon } from 'lucide-react-native';
+import type { LucideIcon } from 'lucide-react-native';
 
 // Category type matching database schema
-export type TransactionCategory = 'Food' | 'Transport' | 'Bills' | 'Salary' | 'Shopping' | 'Entertainment' | 'Health' | 'Other';
+export type TransactionCategory =
+  | 'Food'
+  | 'Transport'
+  | 'Bills'
+  | 'Salary'
+  | 'Shopping'
+  | 'Entertainment'
+  | 'Health'
+  | 'Other';
 
 // Transaction Types
 export interface Transaction {
@@ -65,4 +73,3 @@ export interface EventType {
 }
 
 export type ScheduleFilterType = 'all' | 'activity' | 'exam' | 'class' | 'other';
-

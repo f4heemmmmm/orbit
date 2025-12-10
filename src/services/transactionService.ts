@@ -5,7 +5,7 @@
 
 import { supabase } from '../lib/supabase';
 import { getCurrentUserId } from './authService';
-import { Database } from '../types/database';
+import type { Database } from '../types/database';
 
 type TransactionRow = Database['public']['Tables']['transactions']['Row'];
 type TransactionInsert = Database['public']['Tables']['transactions']['Insert'];
@@ -17,7 +17,9 @@ type TransactionUpdate = Database['public']['Tables']['transactions']['Update'];
 export async function getTransactions(): Promise<TransactionRow[]> {
   try {
     const userId = await getCurrentUserId();
-    if (!userId) throw new Error('No user logged in');
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
 
     const { data, error } = await supabase
       .from('transactions')
@@ -25,7 +27,9 @@ export async function getTransactions(): Promise<TransactionRow[]> {
       .eq('user_id', userId)
       .order('date', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     return data || [];
   } catch (error) {
     console.error('Error fetching transactions:', error);
@@ -41,7 +45,9 @@ export async function createTransaction(
 ): Promise<TransactionRow | null> {
   try {
     const userId = await getCurrentUserId();
-    if (!userId) throw new Error('No user logged in');
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
 
     const { data, error } = await supabase
       .from('transactions')
@@ -52,7 +58,9 @@ export async function createTransaction(
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     return data;
   } catch (error) {
     console.error('Error creating transaction:', error);
@@ -69,7 +77,9 @@ export async function updateTransaction(
 ): Promise<TransactionRow | null> {
   try {
     const userId = await getCurrentUserId();
-    if (!userId) throw new Error('No user logged in');
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
 
     const { data, error } = await supabase
       .from('transactions')
@@ -79,7 +89,9 @@ export async function updateTransaction(
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     return data;
   } catch (error) {
     console.error('Error updating transaction:', error);
@@ -93,7 +105,9 @@ export async function updateTransaction(
 export async function deleteTransaction(id: string): Promise<boolean> {
   try {
     const userId = await getCurrentUserId();
-    if (!userId) throw new Error('No user logged in');
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
 
     const { error } = await supabase
       .from('transactions')
@@ -101,7 +115,9 @@ export async function deleteTransaction(id: string): Promise<boolean> {
       .eq('id', id)
       .eq('user_id', userId); // Ensure user owns this transaction
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     return true;
   } catch (error) {
     console.error('Error deleting transaction:', error);
@@ -118,7 +134,9 @@ export async function getTransactionsByDateRange(
 ): Promise<TransactionRow[]> {
   try {
     const userId = await getCurrentUserId();
-    if (!userId) throw new Error('No user logged in');
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
 
     const { data, error } = await supabase
       .from('transactions')
@@ -128,7 +146,9 @@ export async function getTransactionsByDateRange(
       .lte('date', endDate)
       .order('date', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     return data || [];
   } catch (error) {
     console.error('Error fetching transactions by date range:', error);
@@ -142,19 +162,18 @@ export async function getTransactionsByDateRange(
 export async function getBalance(): Promise<number> {
   try {
     const transactions = await getTransactions();
-    
+
     const income = transactions
       .filter(t => t.type === 'income')
       .reduce((sum, t) => sum + Number(t.amount), 0);
-    
+
     const expenses = transactions
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + Number(t.amount), 0);
-    
+
     return income - expenses;
   } catch (error) {
     console.error('Error calculating balance:', error);
     return 0;
   }
 }
-

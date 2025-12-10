@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '../lib/supabase';
-import { Database } from '../types/database';
+import type { Database } from '../types/database';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -29,19 +29,21 @@ export async function signUp(email: string, password: string, fullName?: string)
       },
     });
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
 
     // Create profile entry
     if (data.user) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: data.user.id,
-          email: data.user.email!,
-          full_name: fullName || null,
-        });
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: data.user.id,
+        email: data.user.email ?? '',
+        full_name: fullName || null,
+      });
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        throw profileError;
+      }
     }
 
     return { data, error: null };
@@ -61,7 +63,9 @@ export async function signIn(email: string, password: string) {
       password,
     });
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     return { data, error: null };
   } catch (error) {
     console.error('Sign in error:', error);
@@ -75,7 +79,9 @@ export async function signIn(email: string, password: string) {
 export async function signOut() {
   try {
     const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     return { error: null };
   } catch (error) {
     console.error('Sign out error:', error);
@@ -88,10 +94,17 @@ export async function signOut() {
  */
 export async function getCurrentUser(): Promise<AuthUser | null> {
   try {
-    const { data: { session }, error } = await supabase.auth.getSession();
-    
-    if (error) throw error;
-    if (!session?.user) return null;
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+
+    if (error) {
+      throw error;
+    }
+    if (!session?.user) {
+      return null;
+    }
 
     // Fetch user profile
     const { data: profile, error: profileError } = await supabase
@@ -100,11 +113,13 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
       .eq('id', session.user.id)
       .single();
 
-    if (profileError) throw profileError;
+    if (profileError) {
+      throw profileError;
+    }
 
     return {
       id: session.user.id,
-      email: session.user.email!,
+      email: session.user.email ?? '',
       profile,
     };
   } catch (error) {
@@ -118,7 +133,9 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
  */
 export async function getCurrentUserId(): Promise<string | null> {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     return session?.user?.id || null;
   } catch (error) {
     console.error('Get current user ID error:', error);
@@ -132,7 +149,9 @@ export async function getCurrentUserId(): Promise<string | null> {
 export async function updateProfile(updates: { full_name?: string; avatar_url?: string }) {
   try {
     const userId = await getCurrentUserId();
-    if (!userId) throw new Error('No user logged in');
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
 
     const { data, error } = await supabase
       .from('profiles')
@@ -141,11 +160,12 @@ export async function updateProfile(updates: { full_name?: string; avatar_url?: 
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     return { data, error: null };
   } catch (error) {
     console.error('Update profile error:', error);
     return { data: null, error };
   }
 }
-

@@ -63,11 +63,20 @@ export const formatRelativeDate = (dateStr: string): string => {
 
   // Check if same year
   if (inputDate.getFullYear() === now.getFullYear()) {
-    return inputDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+    return inputDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+    });
   }
 
   // Different year - include the year
-  return inputDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+  return inputDate.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 };
 
 /**
@@ -94,4 +103,3 @@ export const formatDateTime = (date: Date): string => {
     minute: '2-digit',
   });
 };
-

@@ -40,21 +40,20 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps): React.JS
       setLoading(true);
 
       if (isSignUp) {
-        const { data, error } = await signUp(email.trim(), password, fullName.trim());
+        const { error } = await signUp(email.trim(), password, fullName.trim());
         if (error) {
           const errorMessage = error instanceof Error ? error.message : 'Please try again';
           Alert.alert('Sign Up Failed', errorMessage);
           return;
         }
-        Alert.alert(
-          'Success!',
-          'Account created successfully. You can now sign in.',
-          [{ text: 'OK', onPress: () => setIsSignUp(false) }]
-        );
+        Alert.alert('Success!', 'Account created successfully. You can now sign in.', [
+          { text: 'OK', onPress: () => setIsSignUp(false) },
+        ]);
       } else {
-        const { data, error } = await signIn(email.trim(), password);
+        const { error } = await signIn(email.trim(), password);
         if (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Please check your credentials';
+          const errorMessage =
+            error instanceof Error ? error.message : 'Please check your credentials';
           Alert.alert('Sign In Failed', errorMessage);
           return;
         }
@@ -86,9 +85,29 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps): React.JS
             </Text>
           </View>
 
-        {/* Form */}
-        <View className="gap-4">
-          {isSignUp && (
+          {/* Form */}
+          <View className="gap-4">
+            {isSignUp && (
+              <TextInput
+                className="rounded-xl"
+                style={{
+                  backgroundColor: COLORS.card,
+                  color: COLORS.text.primary,
+                  paddingHorizontal: 16,
+                  paddingVertical: 0,
+                  height: 56,
+                  fontSize: 16,
+                  lineHeight: 20,
+                  includeFontPadding: false,
+                }}
+                placeholder="Full Name"
+                placeholderTextColor={COLORS.text.muted}
+                value={fullName}
+                onChangeText={setFullName}
+                autoCapitalize="words"
+              />
+            )}
+
             <TextInput
               className="rounded-xl"
               style={{
@@ -101,89 +120,68 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps): React.JS
                 lineHeight: 20,
                 includeFontPadding: false,
               }}
-              placeholder="Full Name"
+              placeholder="Email"
               placeholderTextColor={COLORS.text.muted}
-              value={fullName}
-              onChangeText={setFullName}
-              autoCapitalize="words"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              autoComplete="email"
             />
-          )}
 
-          <TextInput
-            className="rounded-xl"
-            style={{
-              backgroundColor: COLORS.card,
-              color: COLORS.text.primary,
-              paddingHorizontal: 16,
-              paddingVertical: 0,
-              height: 56,
-              fontSize: 16,
-              lineHeight: 20,
-              includeFontPadding: false,
-            }}
-            placeholder="Email"
-            placeholderTextColor={COLORS.text.muted}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            autoComplete="email"
-          />
+            <TextInput
+              className="rounded-xl"
+              style={{
+                backgroundColor: COLORS.card,
+                color: COLORS.text.primary,
+                paddingHorizontal: 16,
+                paddingVertical: 0,
+                height: 56,
+                fontSize: 16,
+                lineHeight: 20,
+                includeFontPadding: false,
+              }}
+              placeholder="Password"
+              placeholderTextColor={COLORS.text.muted}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              autoComplete="password"
+            />
 
-          <TextInput
-            className="rounded-xl"
-            style={{
-              backgroundColor: COLORS.card,
-              color: COLORS.text.primary,
-              paddingHorizontal: 16,
-              paddingVertical: 0,
-              height: 56,
-              fontSize: 16,
-              lineHeight: 20,
-              includeFontPadding: false,
-            }}
-            placeholder="Password"
-            placeholderTextColor={COLORS.text.muted}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoCapitalize="none"
-            autoComplete="password"
-          />
+            {/* Auth Button */}
+            <TouchableOpacity
+              className="rounded-xl p-4 items-center mt-2"
+              style={{ backgroundColor: COLORS.pastel.blue }}
+              onPress={handleAuth}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color={COLORS.background} />
+              ) : (
+                <Text style={{ color: COLORS.background }} className="text-base font-semibold">
+                  {isSignUp ? 'Sign Up' : 'Sign In'}
+                </Text>
+              )}
+            </TouchableOpacity>
 
-          {/* Auth Button */}
-          <TouchableOpacity
-            className="rounded-xl p-4 items-center mt-2"
-            style={{ backgroundColor: COLORS.pastel.blue }}
-            onPress={handleAuth}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color={COLORS.background} />
-            ) : (
-              <Text style={{ color: COLORS.background }} className="text-base font-semibold">
-                {isSignUp ? 'Sign Up' : 'Sign In'}
+            {/* Toggle Sign Up/Sign In */}
+            <TouchableOpacity
+              className="items-center mt-4"
+              onPress={() => setIsSignUp(!isSignUp)}
+              disabled={loading}
+            >
+              <Text style={{ color: COLORS.text.secondary }} className="text-sm">
+                {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
+                <Text style={{ color: COLORS.pastel.blue }} className="font-semibold">
+                  {isSignUp ? 'Sign In' : 'Sign Up'}
+                </Text>
               </Text>
-            )}
-          </TouchableOpacity>
-
-          {/* Toggle Sign Up/Sign In */}
-          <TouchableOpacity
-            className="items-center mt-4"
-            onPress={() => setIsSignUp(!isSignUp)}
-            disabled={loading}
-          >
-            <Text style={{ color: COLORS.text.secondary }} className="text-sm">
-              {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
-              <Text style={{ color: COLORS.pastel.blue }} className="font-semibold">
-                {isSignUp ? 'Sign In' : 'Sign Up'}
-              </Text>
-            </Text>
-          </TouchableOpacity>
-        </View>
+            </TouchableOpacity>
+          </View>
         </View>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }
-

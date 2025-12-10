@@ -5,7 +5,7 @@
 
 import { supabase } from '../lib/supabase';
 import { getCurrentUserId } from './authService';
-import { Database } from '../types/database';
+import type { Database } from '../types/database';
 
 type ScheduleEventRow = Database['public']['Tables']['schedule_events']['Row'];
 type ScheduleEventInsert = Database['public']['Tables']['schedule_events']['Insert'];
@@ -17,7 +17,9 @@ type ScheduleEventUpdate = Database['public']['Tables']['schedule_events']['Upda
 export async function getScheduleEvents(): Promise<ScheduleEventRow[]> {
   try {
     const userId = await getCurrentUserId();
-    if (!userId) throw new Error('No user logged in');
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
 
     const { data, error } = await supabase
       .from('schedule_events')
@@ -26,7 +28,9 @@ export async function getScheduleEvents(): Promise<ScheduleEventRow[]> {
       .order('date', { ascending: true })
       .order('time', { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     return data || [];
   } catch (error) {
     console.error('Error fetching schedule events:', error);
@@ -42,7 +46,9 @@ export async function createScheduleEvent(
 ): Promise<ScheduleEventRow | null> {
   try {
     const userId = await getCurrentUserId();
-    if (!userId) throw new Error('No user logged in');
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
 
     const { data, error } = await supabase
       .from('schedule_events')
@@ -53,7 +59,9 @@ export async function createScheduleEvent(
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     return data;
   } catch (error) {
     console.error('Error creating schedule event:', error);
@@ -70,7 +78,9 @@ export async function updateScheduleEvent(
 ): Promise<ScheduleEventRow | null> {
   try {
     const userId = await getCurrentUserId();
-    if (!userId) throw new Error('No user logged in');
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
 
     const { data, error } = await supabase
       .from('schedule_events')
@@ -80,7 +90,9 @@ export async function updateScheduleEvent(
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     return data;
   } catch (error) {
     console.error('Error updating schedule event:', error);
@@ -94,7 +106,9 @@ export async function updateScheduleEvent(
 export async function deleteScheduleEvent(id: string): Promise<boolean> {
   try {
     const userId = await getCurrentUserId();
-    if (!userId) throw new Error('No user logged in');
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
 
     const { error } = await supabase
       .from('schedule_events')
@@ -102,7 +116,9 @@ export async function deleteScheduleEvent(id: string): Promise<boolean> {
       .eq('id', id)
       .eq('user_id', userId); // Ensure user owns this event
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     return true;
   } catch (error) {
     console.error('Error deleting schedule event:', error);
@@ -116,7 +132,9 @@ export async function deleteScheduleEvent(id: string): Promise<boolean> {
 export async function getUpcomingEvents(daysAhead: number = 7): Promise<ScheduleEventRow[]> {
   try {
     const userId = await getCurrentUserId();
-    if (!userId) throw new Error('No user logged in');
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
 
     const today = new Date().toISOString().split('T')[0];
     const futureDate = new Date();
@@ -132,7 +150,9 @@ export async function getUpcomingEvents(daysAhead: number = 7): Promise<Schedule
       .order('date', { ascending: true })
       .order('time', { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     return data || [];
   } catch (error) {
     console.error('Error fetching upcoming events:', error);
@@ -148,7 +168,9 @@ export async function getEventsByType(
 ): Promise<ScheduleEventRow[]> {
   try {
     const userId = await getCurrentUserId();
-    if (!userId) throw new Error('No user logged in');
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
 
     const { data, error } = await supabase
       .from('schedule_events')
@@ -158,11 +180,12 @@ export async function getEventsByType(
       .order('date', { ascending: true })
       .order('time', { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     return data || [];
   } catch (error) {
     console.error('Error fetching events by type:', error);
     return [];
   }
 }
-

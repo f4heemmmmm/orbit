@@ -12,14 +12,19 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Plus, Wallet, X } from 'lucide-react-native';
 import AddTransactionModal from '../components/AddTransactionModal';
 import SwipeableTransactionItem from '../components/SwipeableTransactionItem';
-import { Transaction, TransactionData } from '../types';
+import type { Transaction, TransactionData } from '../types';
 import { COLORS } from '../constants/theme';
 import { formatRelativeDate } from '../utils/dateUtils';
-import { getTransactions, createTransaction, deleteTransaction, updateTransaction } from '../services/transactionService';
+import {
+  getTransactions,
+  createTransaction,
+  deleteTransaction,
+  updateTransaction,
+} from '../services/transactionService';
 
 type RootStackParamList = {
   MainTabs: undefined;
@@ -191,7 +196,7 @@ export default function FinancialsScreen(): React.JSX.Element {
           category: updatedTransaction.category,
           date: new Date(updatedTransaction.date).toISOString().split('T')[0],
         };
-        setTransactions(transactions.map(t => t.id === id ? formattedTransaction : t));
+        setTransactions(transactions.map(t => (t.id === id ? formattedTransaction : t)));
       } else {
         Alert.alert('Error', 'Failed to update transaction. Please try again.');
       }
@@ -202,40 +207,39 @@ export default function FinancialsScreen(): React.JSX.Element {
   };
 
   const handleDeleteTransaction = async (id: string): Promise<void> => {
-    Alert.alert(
-      'Delete Transaction',
-      'Are you sure you want to delete this transaction?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const success = await deleteTransaction(id);
-              if (success) {
-                setTransactions(transactions.filter(t => t.id !== id));
-              } else {
-                Alert.alert('Error', 'Failed to delete transaction. Please try again.');
-              }
-            } catch (error) {
-              console.error('Error deleting transaction:', error);
+    Alert.alert('Delete Transaction', 'Are you sure you want to delete this transaction?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const success = await deleteTransaction(id);
+            if (success) {
+              setTransactions(transactions.filter(t => t.id !== id));
+            } else {
               Alert.alert('Error', 'Failed to delete transaction. Please try again.');
             }
-          },
+          } catch (error) {
+            console.error('Error deleting transaction:', error);
+            Alert.alert('Error', 'Failed to delete transaction. Please try again.');
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   // Group transactions by date
-  const groupedTransactions = transactions.reduce<Record<string, Transaction[]>>((groups, transaction) => {
-    if (!groups[transaction.date]) {
-      groups[transaction.date] = [];
-    }
-    groups[transaction.date].push(transaction);
-    return groups;
-  }, {});
+  const groupedTransactions = transactions.reduce<Record<string, Transaction[]>>(
+    (groups, transaction) => {
+      if (!groups[transaction.date]) {
+        groups[transaction.date] = [];
+      }
+      groups[transaction.date].push(transaction);
+      return groups;
+    },
+    {}
+  );
 
   // Sort dates in descending order (most recent first)
   const sortedDates = Object.keys(groupedTransactions).sort((a, b) => b.localeCompare(a));
@@ -245,10 +249,12 @@ export default function FinancialsScreen(): React.JSX.Element {
       <SwipeableTransactionItem
         key={item.id}
         item={item}
-        onPress={() => navigation.navigate('ViewTransaction', {
-          transaction: item,
-          onUpdate: handleUpdateTransaction,
-        })}
+        onPress={() =>
+          navigation.navigate('ViewTransaction', {
+            transaction: item,
+            onUpdate: handleUpdateTransaction,
+          })
+        }
         onDelete={() => handleDeleteTransaction(item.id)}
       />
     );
@@ -268,22 +274,43 @@ export default function FinancialsScreen(): React.JSX.Element {
           }}
           activeOpacity={transactions.length === 0 ? 0.7 : 1}
         >
-          <Text style={{ color: COLORS.text.secondary }} className="text-base mb-1">Total Balance</Text>
-          <Text style={{ color: balance >= 0 ? COLORS.pastel.green : COLORS.pastel.red }} className="text-2xl font-bold">
+          <Text style={{ color: COLORS.text.secondary }} className="text-base mb-1">
+            Total Balance
+          </Text>
+          <Text
+            style={{ color: balance >= 0 ? COLORS.pastel.green : COLORS.pastel.red }}
+            className="text-2xl font-bold"
+          >
             ${balance.toFixed(2)}
           </Text>
           {transactions.length === 0 && (
-            <Text style={{ color: COLORS.text.muted }} className="text-xs mt-1">Tap to set initial balance</Text>
+            <Text style={{ color: COLORS.text.muted }} className="text-xs mt-1">
+              Tap to set initial balance
+            </Text>
           )}
         </TouchableOpacity>
         <View className="flex-row gap-3">
-          <View className="flex-1 rounded-2xl p-5 items-center" style={{ backgroundColor: COLORS.card }}>
-            <Text style={{ color: COLORS.text.secondary }} className="text-base">Income</Text>
-            <Text style={{ color: COLORS.pastel.green }} className="text-xl font-bold">${totalIncome.toFixed(2)}</Text>
+          <View
+            className="flex-1 rounded-2xl p-5 items-center"
+            style={{ backgroundColor: COLORS.card }}
+          >
+            <Text style={{ color: COLORS.text.secondary }} className="text-base">
+              Income
+            </Text>
+            <Text style={{ color: COLORS.pastel.green }} className="text-xl font-bold">
+              ${totalIncome.toFixed(2)}
+            </Text>
           </View>
-          <View className="flex-1 rounded-2xl p-5 items-center" style={{ backgroundColor: COLORS.card }}>
-            <Text style={{ color: COLORS.text.secondary }} className="text-base">Expenses</Text>
-            <Text style={{ color: COLORS.pastel.red }} className="text-xl font-bold">${totalExpenses.toFixed(2)}</Text>
+          <View
+            className="flex-1 rounded-2xl p-5 items-center"
+            style={{ backgroundColor: COLORS.card }}
+          >
+            <Text style={{ color: COLORS.text.secondary }} className="text-base">
+              Expenses
+            </Text>
+            <Text style={{ color: COLORS.pastel.red }} className="text-xl font-bold">
+              ${totalExpenses.toFixed(2)}
+            </Text>
           </View>
         </View>
       </View>
@@ -296,18 +323,29 @@ export default function FinancialsScreen(): React.JSX.Element {
         {loading ? (
           <View className="items-center justify-center pt-16">
             <ActivityIndicator size="large" color={COLORS.pastel.blue} />
-            <Text style={{ color: COLORS.text.muted }} className="text-base mt-3">Loading transactions...</Text>
+            <Text style={{ color: COLORS.text.muted }} className="text-base mt-3">
+              Loading transactions...
+            </Text>
           </View>
         ) : sortedDates.length === 0 ? (
           <View className="items-center justify-center pt-16">
             <Wallet size={48} color={COLORS.text.muted} />
-            <Text style={{ color: COLORS.text.muted }} className="text-base mt-3">No transactions yet</Text>
-            <Text style={{ color: COLORS.text.muted }} className="text-sm mt-1">Tap + to add your first transaction</Text>
+            <Text style={{ color: COLORS.text.muted }} className="text-base mt-3">
+              No transactions yet
+            </Text>
+            <Text style={{ color: COLORS.text.muted }} className="text-sm mt-1">
+              Tap + to add your first transaction
+            </Text>
           </View>
         ) : (
           sortedDates.map(dateKey => (
             <View key={dateKey} className="mb-4">
-              <Text style={{ color: COLORS.text.secondary }} className="text-base font-semibold mb-2">{formatRelativeDate(dateKey)}</Text>
+              <Text
+                style={{ color: COLORS.text.secondary }}
+                className="text-base font-semibold mb-2"
+              >
+                {formatRelativeDate(dateKey)}
+              </Text>
               {groupedTransactions[dateKey].map(transaction => renderTransaction(transaction))}
             </View>
           ))
@@ -344,10 +382,15 @@ export default function FinancialsScreen(): React.JSX.Element {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           className="flex-1"
         >
-          <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <View
+            className="flex-1 justify-center items-center"
+            style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+          >
             <View className="w-[85%] rounded-2xl p-5" style={{ backgroundColor: COLORS.card }}>
               <View className="flex-row justify-between items-center mb-4">
-                <Text style={{ color: COLORS.text.primary }} className="text-xl font-bold">Set Initial Balance</Text>
+                <Text style={{ color: COLORS.text.primary }} className="text-xl font-bold">
+                  Set Initial Balance
+                </Text>
                 <TouchableOpacity
                   onPress={() => {
                     setInitModalVisible(false);
@@ -358,7 +401,9 @@ export default function FinancialsScreen(): React.JSX.Element {
                 </TouchableOpacity>
               </View>
 
-              <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">Enter your current balance</Text>
+              <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">
+                Enter your current balance
+              </Text>
               <View
                 className="rounded-xl mb-4 p-4 flex-row items-center"
                 style={{ backgroundColor: COLORS.surface }}
@@ -376,7 +421,7 @@ export default function FinancialsScreen(): React.JSX.Element {
                   placeholderTextColor={COLORS.text.muted}
                   keyboardType="number-pad"
                   value={initAmountCents === 0 ? '' : formatCentsToDollars(initAmountCents)}
-                  onChangeText={(text) => handleAmountInput(text, setInitAmountCents)}
+                  onChangeText={text => handleAmountInput(text, setInitAmountCents)}
                   autoFocus
                   caretHidden={true}
                 />
@@ -387,7 +432,9 @@ export default function FinancialsScreen(): React.JSX.Element {
                 style={{ backgroundColor: COLORS.pastel.green }}
                 onPress={handleInitializeBalance}
               >
-                <Text style={{ color: COLORS.background }} className="text-base font-semibold">Initialize Balance</Text>
+                <Text style={{ color: COLORS.background }} className="text-base font-semibold">
+                  Initialize Balance
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -396,4 +443,3 @@ export default function FinancialsScreen(): React.JSX.Element {
     </View>
   );
 }
-

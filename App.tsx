@@ -7,7 +7,9 @@ import { StatusBar } from 'expo-status-bar';
 import { TouchableOpacity, Alert, ActivityIndicator, View } from 'react-native';
 
 import FinancialsScreen from './src/screens/FinancialsScreen';
-import ViewTransactionScreen, { FinancialsStackParamList } from './src/screens/ViewTransactionScreen';
+import ViewTransactionScreen, {
+  type FinancialsStackParamList,
+} from './src/screens/ViewTransactionScreen';
 import TasksScreen from './src/screens/TasksScreen';
 import ScheduleScreen from './src/screens/ScheduleScreen';
 import AuthScreen from './src/screens/AuthScreen';
@@ -54,27 +56,30 @@ export default function App(): React.JSX.Element {
   };
 
   const handleSignOut = async (): Promise<void> => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            await signOut();
-            setIsAuthenticated(false);
-          },
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          await signOut();
+          setIsAuthenticated(false);
         },
-      ]
-    );
+      },
+    ]);
   };
 
   // Show loading screen while checking auth
   if (loading) {
     return (
-      <View style={{ flex: 1, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center' }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: COLORS.background,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <ActivityIndicator size="large" color={COLORS.pastel.blue} />
       </View>
     );
@@ -103,25 +108,22 @@ export default function App(): React.JSX.Element {
             return <Calendar size={size} color={color} />;
           }
         },
-        tabBarActiveTintColor: '#a0c4ff',
-        tabBarInactiveTintColor: '#6b6b80',
+        tabBarActiveTintColor: COLORS.pastel.blue,
+        tabBarInactiveTintColor: COLORS.text.muted,
         tabBarStyle: {
-          backgroundColor: '#1a1a2e',
-          borderTopColor: '#252540',
+          backgroundColor: COLORS.card,
+          borderTopColor: COLORS.surface,
         },
         headerStyle: {
-          backgroundColor: '#1a1a2e',
+          backgroundColor: COLORS.card,
         },
-        headerTintColor: '#e8e8e8',
+        headerTintColor: COLORS.text.primary,
         headerTitleStyle: {
           fontWeight: 'bold',
         },
         headerRight: () => (
-          <TouchableOpacity
-            onPress={handleSignOut}
-            style={{ marginRight: 15 }}
-          >
-            <LogOut size={22} color="#e8e8e8" />
+          <TouchableOpacity onPress={handleSignOut} style={{ marginRight: 15 }}>
+            <LogOut size={22} color={COLORS.text.primary} />
           </TouchableOpacity>
         ),
       })}
@@ -131,16 +133,8 @@ export default function App(): React.JSX.Element {
         component={FinancialsScreen}
         options={{ title: 'Financials' }}
       />
-      <Tab.Screen
-        name="Tasks"
-        component={TasksScreen}
-        options={{ title: 'Tasks' }}
-      />
-      <Tab.Screen
-        name="Schedule"
-        component={ScheduleScreen}
-        options={{ title: 'Schedule' }}
-      />
+      <Tab.Screen name="Tasks" component={TasksScreen} options={{ title: 'Tasks' }} />
+      <Tab.Screen name="Schedule" component={ScheduleScreen} options={{ title: 'Schedule' }} />
     </Tab.Navigator>
   );
 
@@ -159,4 +153,3 @@ export default function App(): React.JSX.Element {
     </NavigationContainer>
   );
 }
-

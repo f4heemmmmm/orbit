@@ -7,7 +7,7 @@ export const COLORS = {
   background: '#0f0f1a',
   card: '#1a1a2e',
   surface: '#252540',
-  
+
   // Pastel accent colors
   pastel: {
     blue: '#a0c4ff',
@@ -20,14 +20,14 @@ export const COLORS = {
     teal: '#9bf6e3',
     coral: '#ffadad',
   },
-  
+
   // Text colors for dark mode
   text: {
     primary: '#e8e8e8',
     secondary: '#a0a0b0',
     muted: '#6b6b80',
   },
-  
+
   // Category colors
   category: {
     food: '#ffadad',
@@ -67,4 +67,3 @@ export const FONT_SIZES = {
   '2xl': 24,
   '3xl': 30,
 } as const;
-

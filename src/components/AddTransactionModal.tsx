@@ -10,9 +10,9 @@ import {
   TouchableWithoutFeedback,
   ScrollView,
 } from 'react-native';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { X, Calendar } from 'lucide-react-native';
-import { TransactionData, TransactionCategory } from '../types';
+import type { TransactionData, TransactionCategory } from '../types';
 import { TRANSACTION_CATEGORIES } from '../constants/categories';
 import { COLORS } from '../constants/theme';
 import { formatDateTime } from '../utils/dateUtils';
@@ -76,7 +76,9 @@ export default function AddTransactionModal({
   };
 
   const handleAdd = (): void => {
-    if (!title.trim() || amountCents <= 0) return;
+    if (!title.trim() || amountCents <= 0) {
+      return;
+    }
     onAdd({
       title: title.trim(),
       description: description.trim(),
@@ -98,20 +100,29 @@ export default function AddTransactionModal({
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <TouchableWithoutFeedback>
-            <View className="rounded-t-3xl p-6 pt-8" style={{ backgroundColor: COLORS.card, height: '92%' }}>
+            <View
+              className="rounded-t-3xl p-6 pt-8"
+              style={{ backgroundColor: COLORS.card, height: '92%' }}
+            >
               <View className="flex-row items-center justify-between mb-5">
                 <Text style={{ color: COLORS.text.primary }} className="text-xl font-bold">
                   Add Transaction
                 </Text>
-                <TouchableOpacity
-                  className="p-2"
-                  onPress={onClose}
-                >
+                <TouchableOpacity className="p-2" onPress={onClose}>
                   <X size={24} color={COLORS.text.secondary} />
                 </TouchableOpacity>
               </View>
-              <ScrollView className="flex-1" keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
-                <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">Title</Text>
+              <ScrollView
+                className="flex-1"
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
+              >
+                <Text
+                  style={{ color: COLORS.text.secondary }}
+                  className="text-base font-medium mb-2"
+                >
+                  Title
+                </Text>
                 <TextInput
                   className="rounded-xl mb-3 p-4"
                   style={{
@@ -125,7 +136,12 @@ export default function AddTransactionModal({
                   onChangeText={setTitle}
                   autoFocus
                 />
-                <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">Description (optional)</Text>
+                <Text
+                  style={{ color: COLORS.text.secondary }}
+                  className="text-base font-medium mb-2"
+                >
+                  Description (optional)
+                </Text>
                 <TextInput
                   className="rounded-xl mb-3 p-4"
                   style={{
@@ -138,7 +154,12 @@ export default function AddTransactionModal({
                   value={description}
                   onChangeText={setDescription}
                 />
-                <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">Amount</Text>
+                <Text
+                  style={{ color: COLORS.text.secondary }}
+                  className="text-base font-medium mb-2"
+                >
+                  Amount
+                </Text>
                 <View
                   className="rounded-xl mb-3 p-4 flex-row items-center"
                   style={{ backgroundColor: COLORS.surface }}
@@ -160,7 +181,12 @@ export default function AddTransactionModal({
                     caretHidden={true}
                   />
                 </View>
-                <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">Date & Time</Text>
+                <Text
+                  style={{ color: COLORS.text.secondary }}
+                  className="text-base font-medium mb-2"
+                >
+                  Date & Time
+                </Text>
                 <TouchableOpacity
                   className="rounded-xl p-4 mb-3 flex-row items-center"
                   style={{ backgroundColor: COLORS.surface }}
@@ -189,28 +215,52 @@ export default function AddTransactionModal({
                     themeVariant="dark"
                   />
                 )}
-                <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">Type</Text>
+                <Text
+                  style={{ color: COLORS.text.secondary }}
+                  className="text-base font-medium mb-2"
+                >
+                  Type
+                </Text>
                 <View className="flex-row mb-4 gap-3">
                   <TouchableOpacity
                     className="flex-1 p-3 rounded-xl items-center"
-                    style={{ backgroundColor: type === 'expense' ? COLORS.pastel.red : COLORS.surface }}
+                    style={{
+                      backgroundColor: type === 'expense' ? COLORS.pastel.red : COLORS.surface,
+                    }}
                     onPress={() => setType('expense')}
                   >
-                    <Text style={{ color: type === 'expense' ? COLORS.background : COLORS.text.secondary }} className="text-base font-medium">
+                    <Text
+                      style={{
+                        color: type === 'expense' ? COLORS.background : COLORS.text.secondary,
+                      }}
+                      className="text-base font-medium"
+                    >
                       Expense
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     className="flex-1 p-3 rounded-xl items-center"
-                    style={{ backgroundColor: type === 'income' ? COLORS.pastel.green : COLORS.surface }}
+                    style={{
+                      backgroundColor: type === 'income' ? COLORS.pastel.green : COLORS.surface,
+                    }}
                     onPress={() => setType('income')}
                   >
-                    <Text style={{ color: type === 'income' ? COLORS.background : COLORS.text.secondary }} className="text-base font-medium">
+                    <Text
+                      style={{
+                        color: type === 'income' ? COLORS.background : COLORS.text.secondary,
+                      }}
+                      className="text-base font-medium"
+                    >
                       Income
                     </Text>
                   </TouchableOpacity>
                 </View>
-                <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">Category</Text>
+                <Text
+                  style={{ color: COLORS.text.secondary }}
+                  className="text-base font-medium mb-2"
+                >
+                  Category
+                </Text>
                 <View className="flex-row flex-wrap mb-5 gap-2">
                   {TRANSACTION_CATEGORIES.map(cat => {
                     const CatIcon = cat.icon;
@@ -218,11 +268,24 @@ export default function AddTransactionModal({
                       <TouchableOpacity
                         key={cat.id}
                         className="flex-row items-center px-4 py-2.5 rounded-full"
-                        style={{ backgroundColor: selectedCategory === cat.id ? cat.color : COLORS.surface }}
+                        style={{
+                          backgroundColor: selectedCategory === cat.id ? cat.color : COLORS.surface,
+                        }}
                         onPress={() => setSelectedCategory(cat.id)}
                       >
-                        <CatIcon size={20} color={selectedCategory === cat.id ? COLORS.background : cat.color} />
-                        <Text className="text-sm ml-1.5" style={{ color: selectedCategory === cat.id ? COLORS.background : COLORS.text.secondary }}>
+                        <CatIcon
+                          size={20}
+                          color={selectedCategory === cat.id ? COLORS.background : cat.color}
+                        />
+                        <Text
+                          className="text-sm ml-1.5"
+                          style={{
+                            color:
+                              selectedCategory === cat.id
+                                ? COLORS.background
+                                : COLORS.text.secondary,
+                          }}
+                        >
                           {cat.name}
                         </Text>
                       </TouchableOpacity>
@@ -231,11 +294,26 @@ export default function AddTransactionModal({
                 </View>
               </ScrollView>
               <View className="flex-row gap-3 pb-8">
-                <TouchableOpacity className="flex-1 p-4 rounded-xl items-center" style={{ backgroundColor: COLORS.surface }} onPress={onClose}>
-                  <Text style={{ color: COLORS.text.secondary }} className="text-base font-semibold">Cancel</Text>
+                <TouchableOpacity
+                  className="flex-1 p-4 rounded-xl items-center"
+                  style={{ backgroundColor: COLORS.surface }}
+                  onPress={onClose}
+                >
+                  <Text
+                    style={{ color: COLORS.text.secondary }}
+                    className="text-base font-semibold"
+                  >
+                    Cancel
+                  </Text>
                 </TouchableOpacity>
-                <TouchableOpacity className="flex-1 p-4 rounded-xl items-center" style={{ backgroundColor: COLORS.pastel.blue }} onPress={handleAdd}>
-                  <Text style={{ color: COLORS.background }} className="text-base font-semibold">Add</Text>
+                <TouchableOpacity
+                  className="flex-1 p-4 rounded-xl items-center"
+                  style={{ backgroundColor: COLORS.pastel.blue }}
+                  onPress={handleAdd}
+                >
+                  <Text style={{ color: COLORS.background }} className="text-base font-semibold">
+                    Add
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>

@@ -1,13 +1,7 @@
 import React, { useRef } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Animated,
-  PanResponder,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Animated, PanResponder } from 'react-native';
 import { ChevronRight, Trash2 } from 'lucide-react-native';
-import { Transaction, Category } from '../types';
+import type { Transaction, Category } from '../types';
 import { TRANSACTION_CATEGORIES } from '../constants/categories';
 import { COLORS } from '../constants/theme';
 
@@ -20,7 +14,11 @@ interface Props {
   onDelete: () => void;
 }
 
-export default function SwipeableTransactionItem({ item, onPress, onDelete }: Props): React.JSX.Element {
+export default function SwipeableTransactionItem({
+  item,
+  onPress,
+  onDelete,
+}: Props): React.JSX.Element {
   const translateX = useRef(new Animated.Value(0)).current;
   const currentOffset = useRef(0);
 
@@ -65,7 +63,7 @@ export default function SwipeableTransactionItem({ item, onPress, onDelete }: Pr
       onPanResponderTerminationRequest: () => false,
       onPanResponderGrant: () => {
         // Stop any ongoing animation and capture current position
-        translateX.stopAnimation((value) => {
+        translateX.stopAnimation(value => {
           currentOffset.current = value;
         });
       },
@@ -168,7 +166,7 @@ export default function SwipeableTransactionItem({ item, onPress, onDelete }: Pr
           activeOpacity={0.7}
           style={{ width: DELETE_BUTTON_WIDTH, height: '100%' }}
         >
-          <Trash2 size={24} color="#FFFFFF" />
+          <Trash2 size={24} color={COLORS.text.primary} />
         </TouchableOpacity>
       </View>
 
