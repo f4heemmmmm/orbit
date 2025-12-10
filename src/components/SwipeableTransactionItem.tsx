@@ -5,15 +5,12 @@ import {
   TouchableOpacity,
   Animated,
   PanResponder,
-  Dimensions,
 } from 'react-native';
 import { ChevronRight, Trash2 } from 'lucide-react-native';
 import { Transaction, Category } from '../types';
 import { TRANSACTION_CATEGORIES } from '../constants/categories';
 import { COLORS } from '../constants/theme';
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const SWIPE_THRESHOLD = -80;
 const DELETE_BUTTON_WIDTH = 80;
 const BORDER_RADIUS = 15; // rounded-xl in Tailwind
 
@@ -157,18 +154,19 @@ export default function SwipeableTransactionItem({ item, onPress, onDelete }: Pr
 
   return (
     <View className="mb-3" style={{ borderRadius: BORDER_RADIUS, overflow: 'hidden' }}>
-      {/* Delete button behind */}
+      {/* Delete button behind - full width */}
       <View
-        className="absolute right-0 top-0 bottom-0 justify-center items-center"
+        className="absolute left-0 right-0 top-0 rounded-3xl bottom-0 justify-center items-end"
         style={{
-          width: DELETE_BUTTON_WIDTH,
           backgroundColor: COLORS.pastel.red,
+          paddingRight: 0,
         }}
       >
         <TouchableOpacity
-          className="flex-1 w-full justify-center items-center"
+          className="justify-center items-center"
           onPress={handleDelete}
           activeOpacity={0.7}
+          style={{ width: DELETE_BUTTON_WIDTH, height: '100%' }}
         >
           <Trash2 size={24} color="#FFFFFF" />
         </TouchableOpacity>

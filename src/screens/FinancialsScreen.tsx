@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  RefreshControl,
   Modal,
   TextInput,
   KeyboardAvoidingView,
@@ -39,7 +38,6 @@ export default function FinancialsScreen(): React.JSX.Element {
   const [initModalVisible, setInitModalVisible] = useState(false);
   const [initAmountCents, setInitAmountCents] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
   // Fetch transactions on mount
   useEffect(() => {
@@ -68,31 +66,6 @@ export default function FinancialsScreen(): React.JSX.Element {
       Alert.alert('Error', 'Failed to load transactions. Please try again.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const onRefresh = async (): Promise<void> => {
-    try {
-      setRefreshing(true);
-      const data = await getTransactions();
-
-      // Convert database format to app format
-      const formattedTransactions: Transaction[] = data.map(t => ({
-        id: t.id,
-        title: t.title,
-        description: t.description || '',
-        amount: Number(t.amount),
-        type: t.type,
-        category: t.category,
-        date: new Date(t.date).toISOString().split('T')[0],
-      }));
-
-      setTransactions(formattedTransactions);
-    } catch (error) {
-      console.error('Error refreshing transactions:', error);
-      Alert.alert('Error', 'Failed to refresh transactions. Please try again.');
-    } finally {
-      setRefreshing(false);
     }
   };
 
@@ -319,14 +292,6 @@ export default function FinancialsScreen(): React.JSX.Element {
         className="flex-1 px-4"
         showsVerticalScrollIndicator={false}
         keyboardDismissMode="on-drag"
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={COLORS.pastel.blue}
-            colors={[COLORS.pastel.blue]}
-          />
-        }
       >
         {loading ? (
           <View className="items-center justify-center pt-16">
