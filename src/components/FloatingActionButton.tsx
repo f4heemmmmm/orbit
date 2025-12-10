@@ -21,4 +21,3 @@ export default function FloatingActionButton({ onPress }: FloatingActionButtonPr
     </TouchableOpacity>
   );
 }
-

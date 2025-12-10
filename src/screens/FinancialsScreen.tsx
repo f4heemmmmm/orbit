@@ -7,18 +7,18 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
-  TextInput,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Wallet, X } from 'lucide-react-native';
+import CurrencyInput from 'react-native-currency-input';
 import AddTransactionModal from '../components/AddTransactionModal';
 import SwipeableTransactionItem from '../components/SwipeableTransactionItem';
 import FloatingActionButton from '../components/FloatingActionButton';
 import type { Transaction, TransactionData } from '../types';
-import { COLORS } from '../constants/theme';
+import { COLORS, FONT_SIZES } from '../constants/theme';
 import { formatRelativeDate } from '../utils/dateUtils';
 import {
   getTransactions,
@@ -42,7 +42,7 @@ export default function FinancialsScreen(): React.JSX.Element {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [initModalVisible, setInitModalVisible] = useState(false);
-  const [initAmountCents, setInitAmountCents] = useState(0);
+  const [initAmount, setInitAmount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Fetch transactions on mount
@@ -85,36 +85,17 @@ export default function FinancialsScreen(): React.JSX.Element {
 
   const balance = totalIncome - totalExpenses;
 
-  // Format cents to dollar string (POS-style)
-  const formatCentsToDollars = (cents: number): string => {
-    const dollars = (cents / 100).toFixed(2);
-    return dollars;
-  };
-
-  // Handle POS-style amount input (fills from cents)
-  const handleAmountInput = (text: string, setCents: (cents: number) => void): void => {
-    // Remove any non-numeric characters
-    const numericOnly = text.replace(/[^0-9]/g, '');
-    // Convert to integer (cents)
-    const cents = parseInt(numericOnly, 10) || 0;
-    // Cap at reasonable max (999999.99)
-    const cappedCents = Math.min(cents, 99999999);
-    setCents(cappedCents);
-  };
-
   const handleInitializeBalance = async (): Promise<void> => {
-    if (initAmountCents <= 0) {
+    if (!initAmount || initAmount <= 0) {
       Alert.alert('Invalid Amount', 'Please enter a valid positive amount.');
       return;
     }
-
-    const amount = initAmountCents / 100;
 
     try {
       const newTransaction = await createTransaction({
         title: 'Initialization',
         description: 'Initial balance setup',
-        amount: amount,
+        amount: initAmount,
         type: 'income',
         category: 'Other',
         date: new Date().toISOString(),
@@ -132,7 +113,7 @@ export default function FinancialsScreen(): React.JSX.Element {
         };
         setTransactions([formattedTransaction, ...transactions]);
         setInitModalVisible(false);
-        setInitAmountCents(0);
+        setInitAmount(null);
       } else {
         Alert.alert('Error', 'Failed to initialize balance. Please try again.');
       }
@@ -369,7 +350,7 @@ export default function FinancialsScreen(): React.JSX.Element {
         animationType="fade"
         onRequestClose={() => {
           setInitModalVisible(false);
-          setInitAmountCents(0);
+          setInitAmount(null);
         }}
       >
         <KeyboardAvoidingView
@@ -388,7 +369,7 @@ export default function FinancialsScreen(): React.JSX.Element {
                 <TouchableOpacity
                   onPress={() => {
                     setInitModalVisible(false);
-                    setInitAmountCents(0);
+                    setInitAmount(null);
                   }}
                 >
                   <X size={24} color={COLORS.text.secondary} />
@@ -402,22 +383,28 @@ export default function FinancialsScreen(): React.JSX.Element {
                 className="rounded-xl mb-4 p-4 flex-row items-center"
                 style={{ backgroundColor: COLORS.surface }}
               >
-                <Text style={{ color: COLORS.text.primary, fontSize: 16 }}>$</Text>
-                <TextInput
-                  className="flex-1 ml-1"
+                <Text style={{ color: COLORS.text.primary, fontSize: FONT_SIZES.base }}>$</Text>
+                <CurrencyInput
+                  value={initAmount}
+                  onChangeValue={setInitAmount}
+                  prefix=""
+                  delimiter=","
+                  separator="."
+                  precision={2}
+                  minValue={0}
+                  maxValue={999999.99}
+                  keyboardType="number-pad"
                   style={{
+                    flex: 1,
+                    marginLeft: 4,
                     color: COLORS.text.primary,
-                    fontSize: 16,
+                    fontSize: FONT_SIZES.base,
                     includeFontPadding: false,
                     padding: 0,
                   }}
                   placeholder="0.00"
                   placeholderTextColor={COLORS.text.muted}
-                  keyboardType="number-pad"
-                  value={initAmountCents === 0 ? '' : formatCentsToDollars(initAmountCents)}
-                  onChangeText={text => handleAmountInput(text, setInitAmountCents)}
                   autoFocus
-                  caretHidden={true}
                 />
               </View>
 

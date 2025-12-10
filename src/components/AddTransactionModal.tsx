@@ -11,10 +11,11 @@ import {
   ScrollView,
 } from 'react-native';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import CurrencyInput from 'react-native-currency-input';
 import { X, Calendar } from 'lucide-react-native';
 import type { TransactionData, TransactionCategory } from '../types';
 import { TRANSACTION_CATEGORIES } from '../constants/categories';
-import { COLORS } from '../constants/theme';
+import { COLORS, FONT_SIZES } from '../constants/theme';
 import { formatDateTime } from '../utils/dateUtils';
 
 interface AddTransactionModalProps {
@@ -30,29 +31,12 @@ export default function AddTransactionModal({
 }: AddTransactionModalProps): React.JSX.Element {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [amountCents, setAmountCents] = useState(0);
+  const [amount, setAmount] = useState<number | null>(null);
   const [type, setType] = useState<'income' | 'expense'>('expense');
   const [selectedCategory, setSelectedCategory] = useState<TransactionCategory>('Other');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-
-  // Format cents to dollar string (POS-style)
-  const formatCentsToDollars = (cents: number): string => {
-    const dollars = (cents / 100).toFixed(2);
-    return dollars;
-  };
-
-  // Handle POS-style amount input (fills from cents)
-  const handleAmountInput = (text: string): void => {
-    // Remove any non-numeric characters
-    const numericOnly = text.replace(/[^0-9]/g, '');
-    // Convert to integer (cents)
-    const cents = parseInt(numericOnly, 10) || 0;
-    // Cap at reasonable max (999999.99)
-    const cappedCents = Math.min(cents, 99999999);
-    setAmountCents(cappedCents);
-  };
 
   const onDateChange = (event: DateTimePickerEvent, selectedDate?: Date): void => {
     if (Platform.OS === 'android') {
@@ -76,20 +60,20 @@ export default function AddTransactionModal({
   };
 
   const handleAdd = (): void => {
-    if (!title.trim() || amountCents <= 0) {
+    if (!title.trim() || !amount || amount <= 0) {
       return;
     }
     onAdd({
       title: title.trim(),
       description: description.trim(),
-      amount: amountCents / 100,
+      amount,
       type,
       category: selectedCategory,
       date,
     });
     setTitle('');
     setDescription('');
-    setAmountCents(0);
+    setAmount(null);
     setType('expense');
     setSelectedCategory('Other');
     setDate(new Date());
@@ -164,21 +148,27 @@ export default function AddTransactionModal({
                   className="rounded-xl mb-3 p-4 flex-row items-center"
                   style={{ backgroundColor: COLORS.surface }}
                 >
-                  <Text style={{ color: COLORS.text.primary, fontSize: 16 }}>$</Text>
-                  <TextInput
-                    className="flex-1 ml-1"
+                  <Text style={{ color: COLORS.text.primary, fontSize: FONT_SIZES.base }}>$</Text>
+                  <CurrencyInput
+                    value={amount}
+                    onChangeValue={setAmount}
+                    prefix=""
+                    delimiter=","
+                    separator="."
+                    precision={2}
+                    minValue={0}
+                    maxValue={999999.99}
+                    keyboardType="number-pad"
                     style={{
+                      flex: 1,
+                      marginLeft: 4,
                       color: COLORS.text.primary,
-                      fontSize: 16,
+                      fontSize: FONT_SIZES.base,
                       includeFontPadding: false,
                       padding: 0,
                     }}
                     placeholder="0.00"
                     placeholderTextColor={COLORS.text.muted}
-                    value={amountCents === 0 ? '' : formatCentsToDollars(amountCents)}
-                    onChangeText={handleAmountInput}
-                    keyboardType="number-pad"
-                    caretHidden={true}
                   />
                 </View>
                 <Text
