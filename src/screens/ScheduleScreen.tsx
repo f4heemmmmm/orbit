@@ -19,7 +19,6 @@ import {
   GraduationCap,
   MoreHorizontal,
   XCircle,
-  Plus,
   Calendar,
 } from 'lucide-react-native';
 import {
@@ -28,6 +27,7 @@ import {
   deleteScheduleEvent,
 } from '../services/scheduleService';
 import { COLORS } from '../constants/theme';
+import FloatingActionButton from '../components/FloatingActionButton';
 
 interface EventType {
   id: 'activity' | 'exam' | 'class' | 'other';
@@ -375,14 +375,7 @@ export default function ScheduleScreen(): React.JSX.Element {
         </ScrollView>
       )}
 
-      {/* Add Button */}
-      <TouchableOpacity
-        className="absolute right-5 bottom-5 w-14 h-14 rounded-full justify-center items-center shadow-lg"
-        style={{ backgroundColor: COLORS.pastel.blue }}
-        onPress={() => setModalVisible(true)}
-      >
-        <Plus size={30} color={COLORS.background} />
-      </TouchableOpacity>
+      <FloatingActionButton onPress={() => setModalVisible(true)} />
 
       {/* Add Event Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>

@@ -13,7 +13,7 @@ import {
   TouchableWithoutFeedback,
   RefreshControl,
 } from 'react-native';
-import { CheckSquare, Square, Trash2, Plus } from 'lucide-react-native';
+import { CheckSquare, Square, Trash2 } from 'lucide-react-native';
 import {
   getTasks,
   createTask,
@@ -21,6 +21,7 @@ import {
   deleteTask as deleteTaskService,
 } from '../services/taskService';
 import { COLORS } from '../constants/theme';
+import FloatingActionButton from '../components/FloatingActionButton';
 
 interface Priority {
   id: 'low' | 'medium' | 'high';
@@ -357,14 +358,7 @@ export default function TasksScreen(): React.JSX.Element {
         />
       )}
 
-      {/* Add Button */}
-      <TouchableOpacity
-        className="absolute right-5 bottom-5 w-14 h-14 rounded-full justify-center items-center shadow-lg"
-        style={{ backgroundColor: COLORS.pastel.blue }}
-        onPress={() => setModalVisible(true)}
-      >
-        <Plus size={30} color={COLORS.background} />
-      </TouchableOpacity>
+      <FloatingActionButton onPress={() => setModalVisible(true)} />
 
       {/* Add Task Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>

@@ -13,9 +13,10 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Plus, Wallet, X } from 'lucide-react-native';
+import { Wallet, X } from 'lucide-react-native';
 import AddTransactionModal from '../components/AddTransactionModal';
 import SwipeableTransactionItem from '../components/SwipeableTransactionItem';
+import FloatingActionButton from '../components/FloatingActionButton';
 import type { Transaction, TransactionData } from '../types';
 import { COLORS } from '../constants/theme';
 import { formatRelativeDate } from '../utils/dateUtils';
@@ -353,14 +354,7 @@ export default function FinancialsScreen(): React.JSX.Element {
         <View className="h-20" />
       </ScrollView>
 
-      {/* Add Button */}
-      <TouchableOpacity
-        className="absolute right-5 bottom-5 w-12 h-12 rounded-full justify-center items-center shadow-lg"
-        style={{ backgroundColor: COLORS.pastel.blue }}
-        onPress={() => setModalVisible(true)}
-      >
-        <Plus size={25} color={COLORS.background} />
-      </TouchableOpacity>
+      <FloatingActionButton onPress={() => setModalVisible(true)} />
 
       <AddTransactionModal
         visible={modalVisible}
