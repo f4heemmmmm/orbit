@@ -53,7 +53,7 @@ export interface Priority {
   color: string;
 }
 
-export type TaskFilterType = 'all' | 'pending' | 'completed';
+export type TaskFilterType = 'pending' | 'completed';
 
 // Schedule Types
 export interface ScheduleEvent {

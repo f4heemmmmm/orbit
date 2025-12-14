@@ -5,6 +5,7 @@
 export type RootTabParamList = {
   Financials: undefined;
   Tasks: undefined;
+  Groceries: undefined;
   Schedule: undefined;
 };
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Wallet, CheckSquare, Calendar, LogOut } from 'lucide-react-native';
+import { Wallet, CheckSquare, Calendar, LogOut, ShoppingBag } from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
 import { TouchableOpacity, Alert, ActivityIndicator, View } from 'react-native';
 
@@ -11,6 +11,7 @@ import ViewTransactionScreen, {
   type FinancialsStackParamList,
 } from './src/screens/ViewTransactionScreen';
 import TasksScreen from './src/screens/TasksScreen';
+import GroceriesScreen from './src/screens/GroceriesScreen';
 import ScheduleScreen from './src/screens/ScheduleScreen';
 import AuthScreen from './src/screens/AuthScreen';
 import { getCurrentUser, signOut } from './src/services/authService';
@@ -21,6 +22,7 @@ import './global.css';
 type TabParamList = {
   Financials: undefined;
   Tasks: undefined;
+  Groceries: undefined;
   Schedule: undefined;
 };
 
@@ -104,6 +106,8 @@ export default function App(): React.JSX.Element {
             return <Wallet size={size} color={color} />;
           } else if (route.name === 'Tasks') {
             return <CheckSquare size={size} color={color} />;
+          } else if (route.name === 'Groceries') {
+            return <ShoppingBag size={size} color={color} />;
           } else {
             return <Calendar size={size} color={color} />;
           }
@@ -134,6 +138,7 @@ export default function App(): React.JSX.Element {
         options={{ title: 'Financials' }}
       />
       <Tab.Screen name="Tasks" component={TasksScreen} options={{ title: 'Tasks' }} />
+      <Tab.Screen name="Groceries" component={GroceriesScreen} options={{ title: 'Groceries' }} />
       <Tab.Screen name="Schedule" component={ScheduleScreen} options={{ title: 'Schedule' }} />
     </Tab.Navigator>
   );

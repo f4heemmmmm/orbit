@@ -43,7 +43,7 @@ const PRIORITIES: Priority[] = [
   { id: 'high', label: 'High', color: COLORS.pastel.red },
 ];
 
-type FilterType = 'all' | 'pending' | 'completed';
+type FilterType = 'pending' | 'completed';
 
 export default function TasksScreen(): React.JSX.Element {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -51,7 +51,7 @@ export default function TasksScreen(): React.JSX.Element {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
-  const [filter, setFilter] = useState<FilterType>('all');
+  const [filter, setFilter] = useState<FilterType>('pending');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -260,7 +260,11 @@ export default function TasksScreen(): React.JSX.Element {
     );
   };
 
-  const filters: FilterType[] = ['all', 'pending', 'completed'];
+  const filters: FilterType[] = ['pending', 'completed'];
+
+  const getFilterLabel = (filterType: FilterType): string => {
+    return filterType === 'pending' ? 'To-do' : 'Completed';
+  };
 
   return (
     <View className="flex-1" style={{ backgroundColor: COLORS.background }}>
@@ -306,15 +310,15 @@ export default function TasksScreen(): React.JSX.Element {
         {filters.map(f => (
           <TouchableOpacity
             key={f}
-            className="px-4 py-2 rounded-full"
+            className="flex-1 py-2 rounded-full"
             style={{ backgroundColor: filter === f ? COLORS.pastel.blue : COLORS.card }}
             onPress={() => setFilter(f)}
           >
             <Text
-              className="text-sm font-medium"
+              className="text-sm font-medium text-center"
               style={{ color: filter === f ? COLORS.background : COLORS.text.secondary }}
             >
-              {f.charAt(0).toUpperCase() + f.slice(1)}
+              {getFilterLabel(f)}
             </Text>
           </TouchableOpacity>
         ))}
