@@ -13,7 +13,7 @@ import {
   TouchableWithoutFeedback,
   RefreshControl,
 } from 'react-native';
-import { CheckSquare, Square, Trash2 } from 'lucide-react-native';
+import { Circle } from 'lucide-react-native';
 import {
   getTasks,
   createTask,
@@ -23,6 +23,7 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 import { getThemeColors } from '../constants/theme';
 import FloatingActionButton from '../components/FloatingActionButton';
+import SwipeableTaskItem from '../components/SwipeableTaskItem';
 
 interface Priority {
   id: 'low' | 'medium' | 'high';
@@ -194,10 +195,6 @@ export default function TasksScreen(): React.JSX.Element {
     }
   };
 
-  const getPriorityInfo = (priorityId: string): Priority => {
-    return PRIORITIES.find(p => p.id === priorityId) || PRIORITIES[1];
-  };
-
   const filteredTasks = tasks.filter(task => {
     if (filter === 'completed') {
       return task.completed;
@@ -212,55 +209,12 @@ export default function TasksScreen(): React.JSX.Element {
   const pendingCount = tasks.filter(t => !t.completed).length;
 
   const renderTask: ListRenderItem<Task> = ({ item }) => {
-    const priorityInfo = getPriorityInfo(item.priority);
     return (
-      <View
-        className="flex-row items-center rounded-xl p-4 mb-2"
-        style={{ backgroundColor: COLORS.card }}
-      >
-        <TouchableOpacity onPress={() => toggleTask(item.id)} className="mr-3">
-          {item.completed ? (
-            <CheckSquare size={26} color={COLORS.pastel.green} />
-          ) : (
-            <Square size={26} color={COLORS.text.muted} />
-          )}
-        </TouchableOpacity>
-        <View className="flex-1">
-          <Text
-            className="text-base font-medium"
-            style={{
-              color: item.completed ? COLORS.text.muted : COLORS.text.primary,
-              textDecorationLine: item.completed ? 'line-through' : 'none',
-            }}
-          >
-            {item.title}
-          </Text>
-          {item.description ? (
-            <Text
-              style={{ color: COLORS.text.secondary }}
-              className="text-sm mt-1"
-              numberOfLines={1}
-            >
-              {item.description}
-            </Text>
-          ) : null}
-          <View
-            className="flex-row items-center self-start px-2.5 py-1 rounded-xl mt-2"
-            style={{ backgroundColor: priorityInfo.color + '25' }}
-          >
-            <View
-              className="w-1.5 h-1.5 rounded-full mr-1.5"
-              style={{ backgroundColor: priorityInfo.color }}
-            />
-            <Text className="text-xs font-medium" style={{ color: priorityInfo.color }}>
-              {priorityInfo.label}
-            </Text>
-          </View>
-        </View>
-        <TouchableOpacity onPress={() => deleteTask(item.id)} className="p-2">
-          <Trash2 size={20} color={COLORS.pastel.red} />
-        </TouchableOpacity>
-      </View>
+      <SwipeableTaskItem
+        item={item}
+        onToggle={() => toggleTask(item.id)}
+        onDelete={() => deleteTask(item.id)}
+      />
     );
   };
 
@@ -354,7 +308,7 @@ export default function TasksScreen(): React.JSX.Element {
           }
           ListEmptyComponent={
             <View className="items-center justify-center pt-16">
-              <CheckSquare size={48} color={COLORS.text.muted} />
+              <Circle size={48} color={COLORS.text.muted} />
               <Text style={{ color: COLORS.text.muted }} className="text-base mt-3">
                 No tasks found
               </Text>
