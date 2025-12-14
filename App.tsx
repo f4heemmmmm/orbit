@@ -2,9 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Wallet, CheckSquare, Calendar, LogOut, ShoppingBag } from 'lucide-react-native';
+import {
+  Wallet,
+  CheckSquare,
+  Calendar,
+  ShoppingBag,
+  Settings as SettingsIcon,
+} from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
-import { TouchableOpacity, Alert, ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 
 import FinancialsScreen from './src/screens/FinancialsScreen';
 import ViewTransactionScreen, {
@@ -13,9 +19,11 @@ import ViewTransactionScreen, {
 import TasksScreen from './src/screens/TasksScreen';
 import GroceriesScreen from './src/screens/GroceriesScreen';
 import ScheduleScreen from './src/screens/ScheduleScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
 import AuthScreen from './src/screens/AuthScreen';
-import { getCurrentUser, signOut } from './src/services/authService';
-import { COLORS } from './src/constants/theme';
+import { getCurrentUser } from './src/services/authService';
+import { ThemeProvider, useTheme } from './src/contexts/ThemeContext';
+import { getThemeColors } from './src/constants/theme';
 
 import './global.css';
 
@@ -24,6 +32,7 @@ type TabParamList = {
   Tasks: undefined;
   Groceries: undefined;
   Schedule: undefined;
+  Settings: undefined;
 };
 
 type RootStackParamList = {
@@ -36,7 +45,9 @@ const RootStack = createNativeStackNavigator<RootStackParamList>();
 
 export { RootStackParamList };
 
-export default function App(): React.JSX.Element {
+function AppContent(): React.JSX.Element {
+  const { themeMode } = useTheme();
+  const COLORS = getThemeColors(themeMode);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -57,18 +68,8 @@ export default function App(): React.JSX.Element {
     }
   };
 
-  const handleSignOut = async (): Promise<void> => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign Out',
-        style: 'destructive',
-        onPress: async () => {
-          await signOut();
-          setIsAuthenticated(false);
-        },
-      },
-    ]);
+  const handleSignOut = (): void => {
+    setIsAuthenticated(false);
   };
 
   // Show loading screen while checking auth
@@ -91,7 +92,7 @@ export default function App(): React.JSX.Element {
   if (!isAuthenticated) {
     return (
       <>
-        <StatusBar style="light" />
+        <StatusBar style={themeMode === 'dark' ? 'light' : 'dark'} />
         <AuthScreen onAuthSuccess={() => setIsAuthenticated(true)} />
       </>
     );
@@ -108,8 +109,10 @@ export default function App(): React.JSX.Element {
             return <CheckSquare size={size} color={color} />;
           } else if (route.name === 'Groceries') {
             return <ShoppingBag size={size} color={color} />;
-          } else {
+          } else if (route.name === 'Schedule') {
             return <Calendar size={size} color={color} />;
+          } else {
+            return <SettingsIcon size={size} color={color} />;
           }
         },
         tabBarActiveTintColor: COLORS.pastel.blue,
@@ -125,11 +128,7 @@ export default function App(): React.JSX.Element {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
-        headerRight: () => (
-          <TouchableOpacity onPress={handleSignOut} style={{ marginRight: 15 }}>
-            <LogOut size={22} color={COLORS.text.primary} />
-          </TouchableOpacity>
-        ),
+        headerShown: route.name !== 'Settings',
       })}
     >
       <Tab.Screen
@@ -140,13 +139,16 @@ export default function App(): React.JSX.Element {
       <Tab.Screen name="Tasks" component={TasksScreen} options={{ title: 'Tasks' }} />
       <Tab.Screen name="Groceries" component={GroceriesScreen} options={{ title: 'Groceries' }} />
       <Tab.Screen name="Schedule" component={ScheduleScreen} options={{ title: 'Schedule' }} />
+      <Tab.Screen name="Settings" options={{ title: 'Settings' }}>
+        {() => <SettingsScreen onSignOut={handleSignOut} />}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 
   // Show main app if authenticated
   return (
     <NavigationContainer>
-      <StatusBar style="light" />
+      <StatusBar style={themeMode === 'dark' ? 'light' : 'dark'} />
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
         <RootStack.Screen name="MainTabs" component={MainTabs} />
         <RootStack.Screen
@@ -156,5 +158,13 @@ export default function App(): React.JSX.Element {
         />
       </RootStack.Navigator>
     </NavigationContainer>
+  );
+}
+
+export default function App(): React.JSX.Element {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }

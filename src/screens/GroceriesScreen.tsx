@@ -22,7 +22,8 @@ import {
   toggleGroceryItemCompletion,
   deleteGroceryItem,
 } from '../services/groceryService';
-import { COLORS } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import { getThemeColors } from '../constants/theme';
 import FloatingActionButton from '../components/FloatingActionButton';
 
 interface GroceryItem {
@@ -32,6 +33,8 @@ interface GroceryItem {
 }
 
 export default function GroceriesScreen(): React.JSX.Element {
+  const { themeMode } = useTheme();
+  const COLORS = getThemeColors(themeMode);
   const [items, setItems] = useState<GroceryItem[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [text, setText] = useState('');
@@ -155,9 +158,6 @@ export default function GroceriesScreen(): React.JSX.Element {
     }
   };
 
-  const completedCount = items.filter(item => item.completed).length;
-  const pendingCount = items.filter(item => !item.completed).length;
-
   const renderItem: ListRenderItem<GroceryItem> = ({ item }) => {
     return (
       <View
@@ -191,43 +191,6 @@ export default function GroceriesScreen(): React.JSX.Element {
 
   return (
     <View className="flex-1" style={{ backgroundColor: COLORS.background }}>
-      {/* Stats */}
-      <View className="flex-row p-4 gap-3">
-        <View
-          className="flex-1 rounded-2xl p-4 items-center"
-          style={{ backgroundColor: COLORS.card }}
-        >
-          <Text style={{ color: COLORS.pastel.blue }} className="text-3xl font-bold">
-            {items.length}
-          </Text>
-          <Text style={{ color: COLORS.text.secondary }} className="text-xs mt-1">
-            Total
-          </Text>
-        </View>
-        <View
-          className="flex-1 rounded-2xl p-4 items-center"
-          style={{ backgroundColor: COLORS.card }}
-        >
-          <Text style={{ color: COLORS.pastel.green }} className="text-3xl font-bold">
-            {completedCount}
-          </Text>
-          <Text style={{ color: COLORS.text.secondary }} className="text-xs mt-1">
-            Completed
-          </Text>
-        </View>
-        <View
-          className="flex-1 rounded-2xl p-4 items-center"
-          style={{ backgroundColor: COLORS.card }}
-        >
-          <Text style={{ color: COLORS.pastel.orange }} className="text-3xl font-bold">
-            {pendingCount}
-          </Text>
-          <Text style={{ color: COLORS.text.secondary }} className="text-xs mt-1">
-            Pending
-          </Text>
-        </View>
-      </View>
-
       {/* Items List */}
       {loading ? (
         <View className="flex-1 items-center justify-center">
@@ -241,7 +204,8 @@ export default function GroceriesScreen(): React.JSX.Element {
           data={items}
           renderItem={renderItem}
           keyExtractor={item => item.id}
-          className="flex-1 px-4"
+          className="flex-1"
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16 }}
           showsVerticalScrollIndicator={false}
           keyboardDismissMode="on-drag"
           refreshControl={

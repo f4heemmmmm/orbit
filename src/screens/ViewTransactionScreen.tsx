@@ -4,7 +4,8 @@ import { ChevronLeft, Calendar, Tag, FileText, DollarSign, Edit } from 'lucide-r
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { Transaction, Category, TransactionData } from '../types';
 import { TRANSACTION_CATEGORIES } from '../constants/categories';
-import { COLORS } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import { getThemeColors } from '../constants/theme';
 import { formatSimpleDate } from '../utils/dateUtils';
 import EditTransactionModal from '../components/EditTransactionModal';
 
@@ -24,6 +25,8 @@ type RootStackParamList = {
 type Props = NativeStackScreenProps<RootStackParamList, 'ViewTransaction'>;
 
 export default function ViewTransactionScreen({ navigation, route }: Props): React.JSX.Element {
+  const { themeMode } = useTheme();
+  const COLORS = getThemeColors(themeMode);
   const { transaction, onUpdate } = route.params;
   const [editModalVisible, setEditModalVisible] = useState(false);
 

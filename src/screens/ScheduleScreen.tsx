@@ -26,7 +26,8 @@ import {
   createScheduleEvent,
   deleteScheduleEvent,
 } from '../services/scheduleService';
-import { COLORS } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import { getThemeColors } from '../constants/theme';
 import FloatingActionButton from '../components/FloatingActionButton';
 
 interface EventType {
@@ -45,17 +46,19 @@ interface ScheduleEvent {
   description: string;
 }
 
-// Pastel colors for dark mode
-const EVENT_TYPES: EventType[] = [
-  { id: 'activity', label: 'Activity', icon: Dumbbell, color: COLORS.pastel.purple },
-  { id: 'exam', label: 'Exam', icon: FileText, color: COLORS.pastel.red },
-  { id: 'class', label: 'Class', icon: GraduationCap, color: COLORS.pastel.blue },
-  { id: 'other', label: 'Other', icon: MoreHorizontal, color: COLORS.pastel.teal },
+const getEventTypes = (colors: ReturnType<typeof getThemeColors>): EventType[] => [
+  { id: 'activity', label: 'Activity', icon: Dumbbell, color: colors.pastel.purple },
+  { id: 'exam', label: 'Exam', icon: FileText, color: colors.pastel.red },
+  { id: 'class', label: 'Class', icon: GraduationCap, color: colors.pastel.blue },
+  { id: 'other', label: 'Other', icon: MoreHorizontal, color: colors.pastel.teal },
 ];
 
 type FilterType = 'all' | 'activity' | 'exam' | 'class' | 'other';
 
 export default function ScheduleScreen(): React.JSX.Element {
+  const { themeMode } = useTheme();
+  const COLORS = getThemeColors(themeMode);
+  const EVENT_TYPES = getEventTypes(COLORS);
   const [events, setEvents] = useState<ScheduleEvent[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [title, setTitle] = useState('');

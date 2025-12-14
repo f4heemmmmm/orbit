@@ -3,7 +3,8 @@ import { View, Text, TouchableOpacity, Animated, PanResponder } from 'react-nati
 import { ChevronRight, Trash2 } from 'lucide-react-native';
 import type { Transaction, Category } from '../types';
 import { TRANSACTION_CATEGORIES } from '../constants/categories';
-import { COLORS } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import { getThemeColors } from '../constants/theme';
 
 const DELETE_BUTTON_WIDTH = 80;
 const BORDER_RADIUS = 15; // rounded-xl in Tailwind
@@ -19,6 +20,8 @@ export default function SwipeableTransactionItem({
   onPress,
   onDelete,
 }: Props): React.JSX.Element {
+  const { themeMode } = useTheme();
+  const COLORS = getThemeColors(themeMode);
   const translateX = useRef(new Animated.Value(0)).current;
   const currentOffset = useRef(0);
 

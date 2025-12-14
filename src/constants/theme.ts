@@ -2,12 +2,34 @@
  * Theme constants for consistent styling across the app
  */
 
-export const COLORS = {
-  // Dark mode backgrounds
+// Dark mode colors
+const DARK_COLORS = {
   background: '#0f0f1a',
   card: '#1a1a2e',
   surface: '#252540',
+  overlay: 'rgba(0,0,0,0.7)',
+  text: {
+    primary: '#e8e8e8',
+    secondary: '#a0a0b0',
+    muted: '#6b6b80',
+  },
+} as const;
 
+// Light mode colors
+const LIGHT_COLORS = {
+  background: '#f5f5f7',
+  card: '#ffffff',
+  surface: '#e8e8ea',
+  overlay: 'rgba(0,0,0,0.5)',
+  text: {
+    primary: '#1a1a1a',
+    secondary: '#6b6b80',
+    muted: '#a0a0b0',
+  },
+} as const;
+
+// Shared colors (same in both modes)
+const SHARED_COLORS = {
   // Pastel accent colors
   pastel: {
     blue: '#a0c4ff',
@@ -19,13 +41,6 @@ export const COLORS = {
     pink: '#ffc6ff',
     teal: '#9bf6e3',
     coral: '#ffadad',
-  },
-
-  // Text colors for dark mode
-  text: {
-    primary: '#e8e8e8',
-    secondary: '#a0a0b0',
-    muted: '#6b6b80',
   },
 
   // Category colors
@@ -40,6 +55,23 @@ export const COLORS = {
     other: '#a0a0b0',
   },
 } as const;
+
+// Default export for backward compatibility (dark mode)
+export const COLORS = {
+  ...DARK_COLORS,
+  ...SHARED_COLORS,
+} as const;
+
+/**
+ * Get theme colors based on mode
+ */
+export function getThemeColors(mode: 'light' | 'dark') {
+  const baseColors = mode === 'light' ? LIGHT_COLORS : DARK_COLORS;
+  return {
+    ...baseColors,
+    ...SHARED_COLORS,
+  };
+}
 
 export const SPACING = {
   xs: 4,

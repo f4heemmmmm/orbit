@@ -7,6 +7,7 @@ export type RootTabParamList = {
   Tasks: undefined;
   Groceries: undefined;
   Schedule: undefined;
+  Settings: undefined;
 };
 
 declare global {

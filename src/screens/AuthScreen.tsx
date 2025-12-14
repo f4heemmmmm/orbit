@@ -12,13 +12,16 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import { signIn, signUp } from '../services/authService';
-import { COLORS } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import { getThemeColors } from '../constants/theme';
 
 interface AuthScreenProps {
   onAuthSuccess: () => void;
 }
 
 export default function AuthScreen({ onAuthSuccess }: AuthScreenProps): React.JSX.Element {
+  const { themeMode } = useTheme();
+  const COLORS = getThemeColors(themeMode);
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

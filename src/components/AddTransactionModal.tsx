@@ -15,7 +15,8 @@ import CurrencyInput from 'react-native-currency-input';
 import { X, Calendar } from 'lucide-react-native';
 import type { TransactionData, TransactionCategory } from '../types';
 import { TRANSACTION_CATEGORIES } from '../constants/categories';
-import { COLORS, FONT_SIZES } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import { getThemeColors, FONT_SIZES } from '../constants/theme';
 import { formatDateTime } from '../utils/dateUtils';
 
 interface AddTransactionModalProps {
@@ -29,6 +30,8 @@ export default function AddTransactionModal({
   onClose,
   onAdd,
 }: AddTransactionModalProps): React.JSX.Element {
+  const { themeMode } = useTheme();
+  const COLORS = getThemeColors(themeMode);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState<number | null>(null);
@@ -193,7 +196,7 @@ export default function AddTransactionModal({
                     mode={Platform.OS === 'ios' ? 'datetime' : 'date'}
                     display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                     onChange={onDateChange}
-                    themeVariant="dark"
+                    themeVariant={themeMode}
                   />
                 )}
                 {showTimePicker && Platform.OS === 'android' && (
@@ -202,7 +205,7 @@ export default function AddTransactionModal({
                     mode="time"
                     display="default"
                     onChange={onTimeChange}
-                    themeVariant="dark"
+                    themeVariant={themeMode}
                   />
                 )}
                 <Text

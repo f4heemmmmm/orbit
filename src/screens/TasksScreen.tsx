@@ -20,7 +20,8 @@ import {
   toggleTaskCompletion,
   deleteTask as deleteTaskService,
 } from '../services/taskService';
-import { COLORS } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import { getThemeColors } from '../constants/theme';
 import FloatingActionButton from '../components/FloatingActionButton';
 
 interface Priority {
@@ -37,15 +38,18 @@ interface Task {
   completed: boolean;
 }
 
-const PRIORITIES: Priority[] = [
-  { id: 'low', label: 'Low', color: COLORS.pastel.green },
-  { id: 'medium', label: 'Medium', color: COLORS.pastel.orange },
-  { id: 'high', label: 'High', color: COLORS.pastel.red },
+const getPriorities = (colors: ReturnType<typeof getThemeColors>): Priority[] => [
+  { id: 'low', label: 'Low', color: colors.pastel.green },
+  { id: 'medium', label: 'Medium', color: colors.pastel.orange },
+  { id: 'high', label: 'High', color: colors.pastel.red },
 ];
 
 type FilterType = 'pending' | 'completed';
 
 export default function TasksScreen(): React.JSX.Element {
+  const { themeMode } = useTheme();
+  const COLORS = getThemeColors(themeMode);
+  const PRIORITIES = getPriorities(COLORS);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [title, setTitle] = useState('');

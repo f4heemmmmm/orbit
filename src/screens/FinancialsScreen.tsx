@@ -18,7 +18,8 @@ import AddTransactionModal from '../components/AddTransactionModal';
 import SwipeableTransactionItem from '../components/SwipeableTransactionItem';
 import FloatingActionButton from '../components/FloatingActionButton';
 import type { Transaction, TransactionData } from '../types';
-import { COLORS, FONT_SIZES } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import { getThemeColors, FONT_SIZES } from '../constants/theme';
 import { formatRelativeDate } from '../utils/dateUtils';
 import {
   getTransactions,
@@ -39,6 +40,8 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function FinancialsScreen(): React.JSX.Element {
   const navigation = useNavigation<NavigationProp>();
+  const { themeMode } = useTheme();
+  const COLORS = getThemeColors(themeMode);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [initModalVisible, setInitModalVisible] = useState(false);

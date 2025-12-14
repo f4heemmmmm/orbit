@@ -169,3 +169,33 @@ export async function updateProfile(updates: { full_name?: string; avatar_url?: 
     return { data: null, error };
   }
 }
+
+/**
+ * Delete user account and all associated data
+ * This will delete the user's profile and cascade delete all related data
+ * Note: The auth user will remain but will have no associated data
+ */
+export async function deleteAccount() {
+  try {
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
+
+    // Delete user's profile (this will cascade delete all related data due to foreign key constraints)
+    // This includes: transactions, tasks, groceries, schedule events, etc.
+    const { error: profileError } = await supabase.from('profiles').delete().eq('id', userId);
+
+    if (profileError) {
+      throw profileError;
+    }
+
+    // Sign out the user
+    await signOut();
+
+    return { error: null };
+  } catch (error) {
+    console.error('Delete account error:', error);
+    return { error };
+  }
+}
