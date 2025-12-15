@@ -165,3 +165,25 @@ export async function deleteGroceryItem(id: string): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Delete all grocery items for the current user
+ */
+export async function deleteAllGroceryItems(): Promise<boolean> {
+  try {
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
+
+    const { error } = await supabase.from('grocery_items').delete().eq('user_id', userId);
+
+    if (error) {
+      throw error;
+    }
+    return true;
+  } catch (error) {
+    console.error('Error deleting all grocery items:', error);
+    return false;
+  }
+}
