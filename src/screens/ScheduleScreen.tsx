@@ -5,21 +5,25 @@ import {
   TouchableOpacity,
   TextInput,
   Modal,
-  ScrollView,
+  FlatList,
   ActivityIndicator,
   Alert,
   Keyboard,
   TouchableWithoutFeedback,
   RefreshControl,
+  ScrollView,
+  Platform,
 } from 'react-native';
+import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import {
   type LucideIcon,
   Dumbbell,
   FileText,
   GraduationCap,
   MoreHorizontal,
-  XCircle,
   Calendar,
+  X,
+  Clock,
 } from 'lucide-react-native';
 import {
   getScheduleEvents,
@@ -29,6 +33,7 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 import { getThemeColors } from '../constants/theme';
 import FloatingActionButton from '../components/FloatingActionButton';
+import SwipeableScheduleItem from '../components/SwipeableScheduleItem';
 
 interface EventType {
   id: 'activity' | 'exam' | 'class' | 'other';
@@ -63,16 +68,16 @@ export default function ScheduleScreen(): React.JSX.Element {
   const [modalVisible, setModalVisible] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedType, setSelectedType] = useState<'activity' | 'exam' | 'class' | 'other'>(
     'other'
   );
   const [filterType, setFilterType] = useState<FilterType>('all');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
-  // Fetch events on mount
   useEffect(() => {
     loadEvents();
   }, []);
@@ -82,7 +87,6 @@ export default function ScheduleScreen(): React.JSX.Element {
       setLoading(true);
       const data = await getScheduleEvents();
 
-      // Convert database format to app format
       const formattedEvents: ScheduleEvent[] = data.map(e => ({
         id: e.id,
         title: e.title,
@@ -106,7 +110,6 @@ export default function ScheduleScreen(): React.JSX.Element {
       setRefreshing(true);
       const data = await getScheduleEvents();
 
-      // Convert database format to app format
       const formattedEvents: ScheduleEvent[] = data.map(e => ({
         id: e.id,
         title: e.title,
@@ -125,8 +128,16 @@ export default function ScheduleScreen(): React.JSX.Element {
     }
   };
 
+  const formatDateForDB = (date: Date): string => {
+    return date.toISOString().split('T')[0];
+  };
+
+  const formatTimeForDB = (date: Date): string => {
+    return date.toTimeString().slice(0, 5);
+  };
+
   const addEvent = async (): Promise<void> => {
-    if (!title.trim() || !date.trim() || !time.trim()) {
+    if (!title.trim()) {
       return;
     }
 
@@ -135,12 +146,11 @@ export default function ScheduleScreen(): React.JSX.Element {
         title: title.trim(),
         description: description.trim(),
         type: selectedType,
-        date: date.trim(),
-        time: time.trim(),
+        date: formatDateForDB(selectedDate),
+        time: formatTimeForDB(selectedDate),
       });
 
       if (newEvent) {
-        // Add to local state
         const formattedEvent: ScheduleEvent = {
           id: newEvent.id,
           title: newEvent.title,
@@ -150,7 +160,6 @@ export default function ScheduleScreen(): React.JSX.Element {
           time: newEvent.time,
         };
 
-        // Add and sort events
         const updatedEvents = [...events, formattedEvent].sort((a, b) => {
           if (a.date !== b.date) {
             return a.date.localeCompare(b.date);
@@ -159,11 +168,7 @@ export default function ScheduleScreen(): React.JSX.Element {
         });
 
         setEvents(updatedEvents);
-        setTitle('');
-        setDescription('');
-        setDate('');
-        setTime('');
-        setSelectedType('other');
+        resetForm();
         setModalVisible(false);
       } else {
         Alert.alert('Error', 'Failed to add event. Please try again.');
@@ -174,17 +179,21 @@ export default function ScheduleScreen(): React.JSX.Element {
     }
   };
 
+  const resetForm = (): void => {
+    setTitle('');
+    setDescription('');
+    setSelectedDate(new Date());
+    setSelectedType('other');
+  };
+
   const deleteEvent = async (id: string): Promise<void> => {
     try {
-      // Optimistically update UI
       const previousEvents = [...events];
       setEvents(events.filter(event => event.id !== id));
 
-      // Delete from database
       const success = await deleteScheduleEvent(id);
 
       if (!success) {
-        // Revert on failure
         setEvents(previousEvents);
         Alert.alert('Error', 'Failed to delete event. Please try again.');
       }
@@ -200,7 +209,6 @@ export default function ScheduleScreen(): React.JSX.Element {
 
   const filteredEvents = filterType === 'all' ? events : events.filter(e => e.type === filterType);
 
-  // Group events by date
   const groupedEvents = filteredEvents.reduce<Record<string, ScheduleEvent[]>>((groups, event) => {
     if (!groups[event.date]) {
       groups[event.date] = [];
@@ -211,56 +219,61 @@ export default function ScheduleScreen(): React.JSX.Element {
 
   const sortedDates = Object.keys(groupedEvents).sort();
 
-  const formatDate = (dateStr: string): string => {
-    const dateObj = new Date(dateStr);
-    return dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+  const formatDisplayDate = (dateStr: string): string => {
+    const dateObj = new Date(dateStr + 'T00:00:00');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (dateObj.getTime() === today.getTime()) {
+      return 'Today';
+    } else if (dateObj.getTime() === tomorrow.getTime()) {
+      return 'Tomorrow';
+    }
+    return dateObj.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
   };
 
-  const renderEvent = (item: ScheduleEvent): React.JSX.Element => {
-    const typeInfo = getTypeInfo(item.type);
-    const IconComponent = typeInfo.icon;
-    return (
-      <View key={item.id} className="flex-row mb-3">
-        <View className="w-12 pt-3">
-          <Text style={{ color: COLORS.text.secondary }} className="text-sm font-semibold">
-            {item.time}
-          </Text>
-        </View>
-        <View
-          className="flex-1 rounded-xl p-3.5"
-          style={{
-            backgroundColor: COLORS.card,
-            borderLeftWidth: 4,
-            borderLeftColor: typeInfo.color,
-          }}
-        >
-          <View className="flex-row items-center">
-            <View
-              className="w-9 h-9 rounded-full justify-center items-center"
-              style={{ backgroundColor: typeInfo.color + '25' }}
-            >
-              <IconComponent size={18} color={typeInfo.color} />
-            </View>
-            <View className="flex-1 ml-3">
-              <Text style={{ color: COLORS.text.primary }} className="text-base font-medium">
-                {item.title}
-              </Text>
-              <Text style={{ color: COLORS.text.secondary }} className="text-xs mt-0.5">
-                {typeInfo.label}
-              </Text>
-            </View>
-            <TouchableOpacity onPress={() => deleteEvent(item.id)} className="p-1">
-              <XCircle size={22} color={COLORS.text.muted} />
-            </TouchableOpacity>
-          </View>
-          {item.description ? (
-            <Text style={{ color: COLORS.text.secondary }} className="text-sm mt-2 ml-12">
-              {item.description}
-            </Text>
-          ) : null}
-        </View>
-      </View>
-    );
+  const formatPickerDate = (date: Date): string => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
+  const formatPickerTime = (date: Date): string => {
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
+  const onDateChange = (event: DateTimePickerEvent, date?: Date): void => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    if (date) {
+      setSelectedDate(date);
+      if (Platform.OS === 'android') {
+        setShowTimePicker(true);
+      }
+    }
+  };
+
+  const onTimeChange = (event: DateTimePickerEvent, time?: Date): void => {
+    if (Platform.OS === 'android') {
+      setShowTimePicker(false);
+    }
+    if (time) {
+      setSelectedDate(time);
+    }
   };
 
   const typeCounts = EVENT_TYPES.reduce<Record<string, number>>((acc, type) => {
@@ -268,66 +281,100 @@ export default function ScheduleScreen(): React.JSX.Element {
     return acc;
   }, {});
 
+  const filters: FilterType[] = ['all', 'activity', 'exam', 'class', 'other'];
+
+  const getFilterLabel = (filter: FilterType): string => {
+    if (filter === 'all') {
+      return 'All';
+    }
+    return EVENT_TYPES.find(t => t.id === filter)?.label || filter;
+  };
+
+  const renderSectionHeader = (dateKey: string): React.JSX.Element => (
+    <Text style={{ color: COLORS.text.secondary }} className="text-base font-semibold mb-2 mt-2">
+      {formatDisplayDate(dateKey)}
+    </Text>
+  );
+
+  const renderEventItem = (event: ScheduleEvent): React.JSX.Element => {
+    const typeInfo = getTypeInfo(event.type);
+    return (
+      <SwipeableScheduleItem
+        item={event}
+        typeInfo={typeInfo}
+        onDelete={() => deleteEvent(event.id)}
+        onPress={() => {}}
+      />
+    );
+  };
+
+  type FlatListItem =
+    | { type: 'header'; dateKey: string; id: string }
+    | { type: 'event'; event: ScheduleEvent; id: string };
+
+  const flatListData: FlatListItem[] = sortedDates.flatMap(dateKey => [
+    { type: 'header' as const, dateKey, id: `header-${dateKey}` },
+    ...groupedEvents[dateKey].map(event => ({ type: 'event' as const, event, id: event.id })),
+  ]);
+
   return (
     <View className="flex-1" style={{ backgroundColor: COLORS.background }}>
-      {/* Type Stats */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="max-h-24">
-        <View className="flex-row p-4 gap-3">
-          {EVENT_TYPES.map(type => {
-            const TypeIcon = type.icon;
-            return (
-              <View
-                key={type.id}
-                className="rounded-2xl p-4 items-center min-w-[80px]"
-                style={{ backgroundColor: COLORS.card, borderWidth: 2, borderColor: type.color }}
-              >
-                <TypeIcon size={24} color={type.color} />
-                <Text style={{ color: COLORS.text.primary }} className="text-xl font-bold mt-1">
-                  {typeCounts[type.id]}
-                </Text>
-                <Text style={{ color: COLORS.text.secondary }} className="text-xs mt-0.5">
-                  {type.label}
-                </Text>
-              </View>
-            );
-          })}
+      {/* Stats */}
+      <View className="flex-row p-4 gap-3">
+        <View
+          className="flex-1 rounded-2xl p-4 items-center"
+          style={{ backgroundColor: COLORS.card }}
+        >
+          <Text style={{ color: COLORS.pastel.blue }} className="text-3xl font-bold">
+            {events.length}
+          </Text>
+          <Text style={{ color: COLORS.text.secondary }} className="text-xs mt-1">
+            Total
+          </Text>
         </View>
-      </ScrollView>
+        <View
+          className="flex-1 rounded-2xl p-4 items-center"
+          style={{ backgroundColor: COLORS.card }}
+        >
+          <Text style={{ color: COLORS.pastel.purple }} className="text-3xl font-bold">
+            {typeCounts['activity'] || 0}
+          </Text>
+          <Text style={{ color: COLORS.text.secondary }} className="text-xs mt-1">
+            Activities
+          </Text>
+        </View>
+        <View
+          className="flex-1 rounded-2xl p-4 items-center"
+          style={{ backgroundColor: COLORS.card }}
+        >
+          <Text style={{ color: COLORS.pastel.red }} className="text-3xl font-bold">
+            {typeCounts['exam'] || 0}
+          </Text>
+          <Text style={{ color: COLORS.text.secondary }} className="text-xs mt-1">
+            Exams
+          </Text>
+        </View>
+      </View>
 
       {/* Filter Tabs */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="max-h-12 mb-2">
-        <View className="flex-row px-4 gap-2">
+      <View className="flex-row px-4 mb-3 gap-2">
+        {filters.map(f => (
           <TouchableOpacity
-            className="px-4 py-2 rounded-full"
-            style={{ backgroundColor: filterType === 'all' ? COLORS.pastel.blue : COLORS.card }}
-            onPress={() => setFilterType('all')}
+            key={f}
+            className="flex-1 py-2 rounded-full"
+            style={{ backgroundColor: filterType === f ? COLORS.pastel.blue : COLORS.card }}
+            onPress={() => setFilterType(f)}
           >
             <Text
-              className="text-sm font-medium"
-              style={{ color: filterType === 'all' ? COLORS.background : COLORS.text.secondary }}
+              className="text-sm font-medium text-center"
+              style={{ color: filterType === f ? COLORS.background : COLORS.text.secondary }}
+              numberOfLines={1}
             >
-              All
+              {getFilterLabel(f)}
             </Text>
           </TouchableOpacity>
-          {EVENT_TYPES.map(type => (
-            <TouchableOpacity
-              key={type.id}
-              className="px-4 py-2 rounded-full"
-              style={{ backgroundColor: filterType === type.id ? type.color : COLORS.card }}
-              onPress={() => setFilterType(type.id)}
-            >
-              <Text
-                className="text-sm font-medium"
-                style={{
-                  color: filterType === type.id ? COLORS.background : COLORS.text.secondary,
-                }}
-              >
-                {type.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
+        ))}
+      </View>
 
       {/* Events List */}
       {loading ? (
@@ -338,7 +385,15 @@ export default function ScheduleScreen(): React.JSX.Element {
           </Text>
         </View>
       ) : (
-        <ScrollView
+        <FlatList
+          data={flatListData}
+          renderItem={({ item }) => {
+            if (item.type === 'header') {
+              return renderSectionHeader(item.dateKey);
+            }
+            return renderEventItem(item.event);
+          }}
+          keyExtractor={item => item.id}
           className="flex-1 px-4"
           showsVerticalScrollIndicator={false}
           keyboardDismissMode="on-drag"
@@ -350,8 +405,7 @@ export default function ScheduleScreen(): React.JSX.Element {
               colors={[COLORS.pastel.blue]}
             />
           }
-        >
-          {sortedDates.length === 0 ? (
+          ListEmptyComponent={
             <View className="items-center justify-center pt-16">
               <Calendar size={48} color={COLORS.text.muted} />
               <Text style={{ color: COLORS.text.muted }} className="text-base mt-3">
@@ -361,21 +415,9 @@ export default function ScheduleScreen(): React.JSX.Element {
                 Tap + to add your first event
               </Text>
             </View>
-          ) : (
-            sortedDates.map(dateKey => (
-              <View key={dateKey} className="mb-5">
-                <Text
-                  style={{ color: COLORS.text.primary }}
-                  className="text-base font-semibold mb-3"
-                >
-                  {formatDate(dateKey)}
-                </Text>
-                {groupedEvents[dateKey].map(event => renderEvent(event))}
-              </View>
-            ))
-          )}
-          <View className="h-20" />
-        </ScrollView>
+          }
+          ListFooterComponent={<View className="h-20" />}
+        />
       )}
 
       <FloatingActionButton onPress={() => setModalVisible(true)} />
@@ -383,122 +425,147 @@ export default function ScheduleScreen(): React.JSX.Element {
       {/* Add Event Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+          <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
             <TouchableWithoutFeedback>
               <View
-                className="rounded-t-3xl p-6 max-h-[85%]"
-                style={{ backgroundColor: COLORS.card }}
+                className="rounded-t-3xl p-6 pt-8"
+                style={{ backgroundColor: COLORS.card, height: '92%' }}
               >
-                <ScrollView
-                  keyboardShouldPersistTaps="handled"
-                  keyboardDismissMode="on-drag"
-                  showsVerticalScrollIndicator={false}
-                >
-                  <Text
-                    style={{ color: COLORS.text.primary }}
-                    className="text-xl font-bold mb-5 text-center"
-                  >
+                <View className="flex-row items-center justify-between mb-5">
+                  <Text style={{ color: COLORS.text.primary }} className="text-xl font-bold">
                     New Event
                   </Text>
+                  <TouchableOpacity
+                    className="p-2"
+                    onPress={() => {
+                      setModalVisible(false);
+                      resetForm();
+                    }}
+                  >
+                    <X size={24} color={COLORS.text.secondary} />
+                  </TouchableOpacity>
+                </View>
 
+                <ScrollView
+                  className="flex-1"
+                  keyboardShouldPersistTaps="handled"
+                  keyboardDismissMode="on-drag"
+                >
+                  <Text
+                    style={{ color: COLORS.text.secondary }}
+                    className="text-base font-medium mb-2"
+                  >
+                    Title
+                  </Text>
                   <TextInput
-                    className="rounded-xl mb-3"
+                    className="rounded-xl mb-3 p-4"
                     style={{
                       backgroundColor: COLORS.surface,
                       color: COLORS.text.primary,
-                      paddingHorizontal: 16,
-                      paddingVertical: 0,
-                      height: 56,
                       fontSize: 16,
-                      lineHeight: 20,
                       includeFontPadding: false,
                     }}
-                    placeholder="Event title"
                     placeholderTextColor={COLORS.text.muted}
+                    placeholder="Event title"
                     value={title}
                     onChangeText={setTitle}
+                    autoFocus
                   />
 
+                  <Text
+                    style={{ color: COLORS.text.secondary }}
+                    className="text-base font-medium mb-2"
+                  >
+                    Description (optional)
+                  </Text>
                   <TextInput
-                    className="rounded-xl mb-3"
+                    className="rounded-xl mb-3 p-4"
                     style={{
                       backgroundColor: COLORS.surface,
                       color: COLORS.text.primary,
-                      paddingHorizontal: 16,
-                      paddingVertical: 0,
-                      height: 56,
                       fontSize: 16,
-                      lineHeight: 20,
                       includeFontPadding: false,
                     }}
-                    placeholder="Description (optional)"
                     placeholderTextColor={COLORS.text.muted}
+                    placeholder="Add notes or details"
                     value={description}
                     onChangeText={setDescription}
                   />
 
-                  <View className="flex-row gap-3">
-                    <TextInput
-                      className="flex-1 rounded-xl mb-3"
-                      style={{
-                        backgroundColor: COLORS.surface,
-                        color: COLORS.text.primary,
-                        paddingHorizontal: 16,
-                        paddingVertical: 0,
-                        height: 56,
-                        fontSize: 16,
-                        lineHeight: 20,
-                        includeFontPadding: false,
-                      }}
-                      placeholder="Date (YYYY-MM-DD)"
-                      placeholderTextColor={COLORS.text.muted}
-                      value={date}
-                      onChangeText={setDate}
-                    />
-                    <TextInput
-                      className="flex-1 rounded-xl mb-3"
-                      style={{
-                        backgroundColor: COLORS.surface,
-                        color: COLORS.text.primary,
-                        paddingHorizontal: 16,
-                        paddingVertical: 0,
-                        height: 56,
-                        fontSize: 16,
-                        lineHeight: 20,
-                        includeFontPadding: false,
-                      }}
-                      placeholder="Time (HH:MM)"
-                      placeholderTextColor={COLORS.text.muted}
-                      value={time}
-                      onChangeText={setTime}
-                    />
-                  </View>
-
-                  {/* Type Selection */}
                   <Text
                     style={{ color: COLORS.text.secondary }}
-                    className="text-sm font-medium mb-2"
+                    className="text-base font-medium mb-2"
+                  >
+                    Date & Time
+                  </Text>
+                  <View className="flex-row gap-3 mb-3">
+                    <TouchableOpacity
+                      className="flex-1 rounded-xl p-4 flex-row items-center"
+                      style={{ backgroundColor: COLORS.surface }}
+                      onPress={() => setShowDatePicker(true)}
+                    >
+                      <Calendar size={20} color={COLORS.text.secondary} />
+                      <Text className="text-base ml-3" style={{ color: COLORS.text.primary }}>
+                        {formatPickerDate(selectedDate)}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View className="flex-row gap-3 mb-3">
+                    <TouchableOpacity
+                      className="flex-1 rounded-xl p-4 flex-row items-center"
+                      style={{ backgroundColor: COLORS.surface }}
+                      onPress={() => setShowTimePicker(true)}
+                    >
+                      <Clock size={20} color={COLORS.text.secondary} />
+                      <Text className="text-base ml-3" style={{ color: COLORS.text.primary }}>
+                        {formatPickerTime(selectedDate)}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {showDatePicker && (
+                    <DateTimePicker
+                      value={selectedDate}
+                      mode={Platform.OS === 'ios' ? 'datetime' : 'date'}
+                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                      onChange={onDateChange}
+                      themeVariant={themeMode}
+                    />
+                  )}
+                  {showTimePicker && Platform.OS === 'android' && (
+                    <DateTimePicker
+                      value={selectedDate}
+                      mode="time"
+                      display="default"
+                      onChange={onTimeChange}
+                      themeVariant={themeMode}
+                    />
+                  )}
+
+                  <Text
+                    style={{ color: COLORS.text.secondary }}
+                    className="text-base font-medium mb-2"
                   >
                     Event Type
                   </Text>
-                  <View className="flex-row flex-wrap gap-2.5 mb-5">
+                  <View className="flex-row flex-wrap gap-2 mb-4">
                     {EVENT_TYPES.map(type => {
                       const TypeIcon = type.icon;
                       return (
                         <TouchableOpacity
                           key={type.id}
-                          className="flex-row items-center px-3.5 py-2.5 rounded-xl"
+                          className="flex-row items-center px-4 py-2.5 rounded-full"
                           style={{
                             backgroundColor: selectedType === type.id ? type.color : COLORS.surface,
                           }}
                           onPress={() => setSelectedType(type.id)}
                         >
                           <TypeIcon
-                            size={20}
+                            size={18}
                             color={selectedType === type.id ? COLORS.background : type.color}
                           />
                           <Text
-                            className="text-sm font-medium ml-1.5"
+                            className="text-sm font-medium ml-2"
                             style={{
                               color:
                                 selectedType === type.id
@@ -512,34 +579,34 @@ export default function ScheduleScreen(): React.JSX.Element {
                       );
                     })}
                   </View>
-
-                  <View className="flex-row gap-3 mt-4">
-                    <TouchableOpacity
-                      className="flex-1 p-4 rounded-xl items-center"
-                      style={{ backgroundColor: COLORS.surface }}
-                      onPress={() => setModalVisible(false)}
-                    >
-                      <Text
-                        style={{ color: COLORS.text.secondary }}
-                        className="text-base font-semibold"
-                      >
-                        Cancel
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      className="flex-1 p-4 rounded-xl items-center"
-                      style={{ backgroundColor: COLORS.pastel.blue }}
-                      onPress={addEvent}
-                    >
-                      <Text
-                        style={{ color: COLORS.background }}
-                        className="text-base font-semibold"
-                      >
-                        Add Event
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
                 </ScrollView>
+
+                <View className="flex-row gap-3 pb-8">
+                  <TouchableOpacity
+                    className="flex-1 p-4 rounded-xl items-center"
+                    style={{ backgroundColor: COLORS.surface }}
+                    onPress={() => {
+                      setModalVisible(false);
+                      resetForm();
+                    }}
+                  >
+                    <Text
+                      style={{ color: COLORS.text.secondary }}
+                      className="text-base font-semibold"
+                    >
+                      Cancel
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className="flex-1 p-4 rounded-xl items-center"
+                    style={{ backgroundColor: COLORS.pastel.blue }}
+                    onPress={addEvent}
+                  >
+                    <Text style={{ color: COLORS.background }} className="text-base font-semibold">
+                      Add
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </TouchableWithoutFeedback>
           </View>
