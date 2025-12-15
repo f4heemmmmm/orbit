@@ -11,16 +11,12 @@ import {
   Alert,
   RefreshControl,
 } from 'react-native';
-import { CheckSquare, Square, Trash2, ShoppingBag, X } from 'lucide-react-native';
-import {
-  getGroceryItems,
-  createGroceryItem,
-  toggleGroceryItemCompletion,
-  deleteGroceryItem,
-} from '../services/groceryService';
+import { ShoppingBag, X } from 'lucide-react-native';
+import { getGroceryItems, createGroceryItem, deleteGroceryItem } from '../services/groceryService';
 import { useTheme } from '../contexts/ThemeContext';
 import { getThemeColors } from '../constants/theme';
 import FloatingActionButton from '../components/FloatingActionButton';
+import SwipeableGroceryItem from '../components/SwipeableGroceryItem';
 
 interface GroceryItem {
   id: string;
@@ -83,33 +79,6 @@ export default function GroceriesScreen(): React.JSX.Element {
     }
   };
 
-  const toggleItem = async (id: string): Promise<void> => {
-    try {
-      // Optimistically update UI
-      setItems(
-        items.map(item => (item.id === id ? { ...item, completed: !item.completed } : item))
-      );
-
-      // Update in database
-      const updatedItem = await toggleGroceryItemCompletion(id);
-
-      if (!updatedItem) {
-        // Revert on failure
-        setItems(
-          items.map(item => (item.id === id ? { ...item, completed: !item.completed } : item))
-        );
-        Alert.alert('Error', 'Failed to update item. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error toggling item:', error);
-      // Revert on error
-      setItems(
-        items.map(item => (item.id === id ? { ...item, completed: !item.completed } : item))
-      );
-      Alert.alert('Error', 'Failed to update item. Please try again.');
-    }
-  };
-
   const deleteItem = async (id: string): Promise<void> => {
     try {
       const success = await deleteGroceryItem(id);
@@ -155,34 +124,7 @@ export default function GroceriesScreen(): React.JSX.Element {
   };
 
   const renderItem: ListRenderItem<GroceryItem> = ({ item }) => {
-    return (
-      <View
-        className="flex-row items-center rounded-xl p-4 mb-2"
-        style={{ backgroundColor: COLORS.card }}
-      >
-        <TouchableOpacity onPress={() => toggleItem(item.id)} className="mr-3">
-          {item.completed ? (
-            <CheckSquare size={26} color={COLORS.pastel.green} />
-          ) : (
-            <Square size={26} color={COLORS.text.muted} />
-          )}
-        </TouchableOpacity>
-        <View className="flex-1">
-          <Text
-            style={{
-              color: item.completed ? COLORS.text.muted : COLORS.text.primary,
-              textDecorationLine: item.completed ? 'line-through' : 'none',
-            }}
-            className="text-base"
-          >
-            {item.text}
-          </Text>
-        </View>
-        <TouchableOpacity onPress={() => deleteItem(item.id)} className="p-2">
-          <Trash2 size={20} color={COLORS.pastel.red} />
-        </TouchableOpacity>
-      </View>
-    );
+    return <SwipeableGroceryItem item={item} onDelete={() => deleteItem(item.id)} />;
   };
 
   return (
