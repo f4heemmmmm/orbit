@@ -17,6 +17,7 @@ import ViewTransactionScreen, {
   type FinancialsStackParamList,
 } from './src/screens/ViewTransactionScreen';
 import TasksScreen from './src/screens/TasksScreen';
+import ViewTaskScreen, { type Task } from './src/screens/ViewTaskScreen';
 import GroceriesScreen from './src/screens/GroceriesScreen';
 import ScheduleScreen from './src/screens/ScheduleScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
@@ -38,6 +39,7 @@ type TabParamList = {
 type RootStackParamList = {
   MainTabs: undefined;
   ViewTransaction: { transaction: FinancialsStackParamList['ViewTransaction']['transaction'] };
+  ViewTask: { task: Task; onToggle?: (id: string) => void };
 };
 
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -154,6 +156,11 @@ function AppContent(): React.JSX.Element {
         <RootStack.Screen
           name="ViewTransaction"
           component={ViewTransactionScreen}
+          options={{ animation: 'slide_from_right' }}
+        />
+        <RootStack.Screen
+          name="ViewTask"
+          component={ViewTaskScreen}
           options={{ animation: 'slide_from_right' }}
         />
       </RootStack.Navigator>

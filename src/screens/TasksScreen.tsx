@@ -14,6 +14,8 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Circle } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   getTasks,
   createTask,
@@ -39,6 +41,13 @@ interface Task {
   completed: boolean;
 }
 
+type RootStackParamList = {
+  MainTabs: undefined;
+  ViewTask: { task: Task; onToggle?: (id: string) => void };
+};
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
 const getPriorities = (colors: ReturnType<typeof getThemeColors>): Priority[] => [
   { id: 'low', label: 'Low', color: colors.pastel.green },
   { id: 'medium', label: 'Medium', color: colors.pastel.orange },
@@ -48,6 +57,7 @@ const getPriorities = (colors: ReturnType<typeof getThemeColors>): Priority[] =>
 type FilterType = 'pending' | 'completed';
 
 export default function TasksScreen(): React.JSX.Element {
+  const navigation = useNavigation<NavigationProp>();
   const { themeMode } = useTheme();
   const COLORS = getThemeColors(themeMode);
   const PRIORITIES = getPriorities(COLORS);
@@ -208,12 +218,20 @@ export default function TasksScreen(): React.JSX.Element {
   const completedCount = tasks.filter(t => t.completed).length;
   const pendingCount = tasks.filter(t => !t.completed).length;
 
+  const handleViewTask = (task: Task): void => {
+    navigation.navigate('ViewTask', {
+      task,
+      onToggle: toggleTask,
+    });
+  };
+
   const renderTask: ListRenderItem<Task> = ({ item }) => {
     return (
       <SwipeableTaskItem
         item={item}
         onToggle={() => toggleTask(item.id)}
         onDelete={() => deleteTask(item.id)}
+        onPress={() => handleViewTask(item)}
       />
     );
   };

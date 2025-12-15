@@ -10,6 +10,8 @@ const BORDER_RADIUS = 15; // rounded-xl in Tailwind
 interface Task {
   id: string;
   title: string;
+  description: string;
+  priority: 'low' | 'medium' | 'high';
   completed: boolean;
 }
 
@@ -17,9 +19,15 @@ interface Props {
   item: Task;
   onToggle: () => void;
   onDelete: () => void;
+  onPress: () => void;
 }
 
-export default function SwipeableTaskItem({ item, onToggle, onDelete }: Props): React.JSX.Element {
+export default function SwipeableTaskItem({
+  item,
+  onToggle,
+  onDelete,
+  onPress,
+}: Props): React.JSX.Element {
   const { themeMode } = useTheme();
   const COLORS = getThemeColors(themeMode);
   const translateX = useRef(new Animated.Value(0)).current;
@@ -138,8 +146,12 @@ export default function SwipeableTaskItem({ item, onToggle, onDelete }: Props): 
     if (currentOffset.current < 0) {
       closeSwipe();
     } else {
-      onToggle();
+      onPress();
     }
+  };
+
+  const handleToggle = () => {
+    onToggle();
   };
 
   return (
@@ -174,20 +186,20 @@ export default function SwipeableTaskItem({ item, onToggle, onDelete }: Props): 
           backgroundColor: COLORS.card,
         }}
       >
-        <TouchableOpacity
-          className="flex-row items-center p-4"
-          style={{ backgroundColor: 'transparent' }}
-          onPress={handlePress}
-          activeOpacity={0.7}
-        >
-          <View className="mr-3">
+        <View className="flex-row items-center p-4">
+          <TouchableOpacity onPress={handleToggle} className="mr-3" activeOpacity={0.7}>
             {item.completed ? (
               <CheckCircle size={26} color={COLORS.pastel.green} />
             ) : (
               <Circle size={26} color={COLORS.text.muted} />
             )}
-          </View>
-          <View className="flex-1">
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="flex-1"
+            style={{ backgroundColor: 'transparent' }}
+            onPress={handlePress}
+            activeOpacity={0.7}
+          >
             <Text
               className="text-base font-medium"
               style={{
@@ -197,8 +209,8 @@ export default function SwipeableTaskItem({ item, onToggle, onDelete }: Props): 
             >
               {item.title}
             </Text>
-          </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+        </View>
       </Animated.View>
     </View>
   );
