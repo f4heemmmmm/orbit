@@ -12,8 +12,9 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   RefreshControl,
+  ScrollView,
 } from 'react-native';
-import { Circle } from 'lucide-react-native';
+import { Circle, X } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
@@ -343,77 +344,97 @@ export default function TasksScreen(): React.JSX.Element {
       {/* Add Task Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+          <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
             <TouchableWithoutFeedback>
-              <View className="rounded-t-3xl p-6" style={{ backgroundColor: COLORS.card }}>
-                <Text
-                  style={{ color: COLORS.text.primary }}
-                  className="text-xl font-bold mb-5 text-center"
-                >
-                  New Task
-                </Text>
-
-                <TextInput
-                  className="rounded-xl mb-3"
-                  style={{
-                    backgroundColor: COLORS.surface,
-                    color: COLORS.text.primary,
-                    paddingHorizontal: 16,
-                    paddingVertical: 0,
-                    height: 56,
-                    fontSize: 16,
-                    lineHeight: 20,
-                    includeFontPadding: false,
-                  }}
-                  placeholder="Task title"
-                  placeholderTextColor={COLORS.text.muted}
-                  value={title}
-                  onChangeText={setTitle}
-                />
-
-                <TextInput
-                  className="rounded-xl text-base mb-3"
-                  style={{
-                    backgroundColor: COLORS.surface,
-                    color: COLORS.text.primary,
-                    paddingVertical: 16,
-                    paddingHorizontal: 16,
-                    minHeight: 80,
-                    textAlignVertical: 'top',
-                  }}
-                  placeholder="Description (optional)"
-                  placeholderTextColor={COLORS.text.muted}
-                  value={description}
-                  onChangeText={setDescription}
-                  multiline
-                  numberOfLines={3}
-                />
-
-                {/* Priority Selection */}
-                <Text style={{ color: COLORS.text.secondary }} className="text-sm font-medium mb-2">
-                  Priority
-                </Text>
-                <View className="flex-row gap-3 mb-5">
-                  {PRIORITIES.map(p => (
-                    <TouchableOpacity
-                      key={p.id}
-                      className="flex-1 py-3 rounded-xl items-center"
-                      style={{ backgroundColor: priority === p.id ? p.color : COLORS.surface }}
-                      onPress={() => setPriority(p.id)}
-                    >
-                      <Text
-                        className="text-sm font-medium"
-                        style={{
-                          color: priority === p.id ? COLORS.background : COLORS.text.secondary,
-                        }}
-                      >
-                        {p.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+              <View
+                className="rounded-t-3xl p-6 pt-8"
+                style={{ backgroundColor: COLORS.card, height: '92%' }}
+              >
+                <View className="flex-row items-center justify-between mb-5">
+                  <Text style={{ color: COLORS.text.primary }} className="text-xl font-bold">
+                    Add Task
+                  </Text>
+                  <TouchableOpacity className="p-2" onPress={() => setModalVisible(false)}>
+                    <X size={24} color={COLORS.text.secondary} />
+                  </TouchableOpacity>
                 </View>
+                <ScrollView
+                  className="flex-1"
+                  keyboardShouldPersistTaps="handled"
+                  keyboardDismissMode="on-drag"
+                >
+                  <Text
+                    style={{ color: COLORS.text.secondary }}
+                    className="text-base font-medium mb-2"
+                  >
+                    Title
+                  </Text>
+                  <TextInput
+                    className="rounded-xl mb-3 p-4"
+                    style={{
+                      backgroundColor: COLORS.surface,
+                      color: COLORS.text.primary,
+                      fontSize: 16,
+                      includeFontPadding: false,
+                    }}
+                    placeholderTextColor={COLORS.text.muted}
+                    value={title}
+                    onChangeText={setTitle}
+                    autoFocus
+                  />
 
-                <View className="flex-row gap-3">
+                  <Text
+                    style={{ color: COLORS.text.secondary }}
+                    className="text-base font-medium mb-2"
+                  >
+                    Description (optional)
+                  </Text>
+                  <TextInput
+                    className="rounded-xl mb-3 p-4"
+                    style={{
+                      backgroundColor: COLORS.surface,
+                      color: COLORS.text.primary,
+                      fontSize: 16,
+                      includeFontPadding: false,
+                      minHeight: 100,
+                      textAlignVertical: 'top',
+                    }}
+                    placeholderTextColor={COLORS.text.muted}
+                    value={description}
+                    onChangeText={setDescription}
+                    multiline
+                    numberOfLines={4}
+                  />
+
+                  <Text
+                    style={{ color: COLORS.text.secondary }}
+                    className="text-base font-medium mb-2"
+                  >
+                    Priority
+                  </Text>
+                  <View className="flex-row mb-4 gap-3">
+                    {PRIORITIES.map(p => (
+                      <TouchableOpacity
+                        key={p.id}
+                        className="flex-1 p-3 rounded-xl items-center"
+                        style={{
+                          backgroundColor: priority === p.id ? p.color : COLORS.surface,
+                        }}
+                        onPress={() => setPriority(p.id)}
+                      >
+                        <Text
+                          style={{
+                            color: priority === p.id ? COLORS.background : COLORS.text.secondary,
+                          }}
+                          className="text-base font-medium"
+                        >
+                          {p.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </ScrollView>
+                <View className="flex-row gap-3 pb-8">
                   <TouchableOpacity
                     className="flex-1 p-4 rounded-xl items-center"
                     style={{ backgroundColor: COLORS.surface }}
@@ -432,7 +453,7 @@ export default function TasksScreen(): React.JSX.Element {
                     onPress={addTask}
                   >
                     <Text style={{ color: COLORS.background }} className="text-base font-semibold">
-                      Add Task
+                      Add
                     </Text>
                   </TouchableOpacity>
                 </View>

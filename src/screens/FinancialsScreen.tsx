@@ -7,8 +7,6 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -356,73 +354,77 @@ export default function FinancialsScreen(): React.JSX.Element {
           setInitAmount(null);
         }}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          className="flex-1"
+        <TouchableOpacity
+          className="flex-1 items-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)', paddingTop: '60%' }}
+          activeOpacity={1}
+          onPress={() => {
+            setInitModalVisible(false);
+            setInitAmount(null);
+          }}
         >
-          <View
-            className="flex-1 justify-center items-center"
-            style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+          <TouchableOpacity
+            activeOpacity={1}
+            className="w-[85%] rounded-2xl p-5"
+            style={{ backgroundColor: COLORS.card }}
           >
-            <View className="w-[85%] rounded-2xl p-5" style={{ backgroundColor: COLORS.card }}>
-              <View className="flex-row justify-between items-center mb-4">
-                <Text style={{ color: COLORS.text.primary }} className="text-xl font-bold">
-                  Set Initial Balance
-                </Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    setInitModalVisible(false);
-                    setInitAmount(null);
-                  }}
-                >
-                  <X size={24} color={COLORS.text.secondary} />
-                </TouchableOpacity>
-              </View>
-
-              <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">
-                Enter your current balance
+            <View className="flex-row justify-between items-center mb-4">
+              <Text style={{ color: COLORS.text.primary }} className="text-xl font-bold">
+                Set Initial Balance
               </Text>
-              <View
-                className="rounded-xl mb-4 p-4 flex-row items-center"
-                style={{ backgroundColor: COLORS.surface }}
-              >
-                <Text style={{ color: COLORS.text.primary, fontSize: FONT_SIZES.base }}>$</Text>
-                <CurrencyInput
-                  value={initAmount}
-                  onChangeValue={setInitAmount}
-                  prefix=""
-                  delimiter=","
-                  separator="."
-                  precision={2}
-                  minValue={0}
-                  maxValue={999999.99}
-                  keyboardType="number-pad"
-                  style={{
-                    flex: 1,
-                    marginLeft: 4,
-                    color: COLORS.text.primary,
-                    fontSize: FONT_SIZES.base,
-                    includeFontPadding: false,
-                    padding: 0,
-                  }}
-                  placeholder="0.00"
-                  placeholderTextColor={COLORS.text.muted}
-                  autoFocus
-                />
-              </View>
-
               <TouchableOpacity
-                className="rounded-xl py-3 items-center"
-                style={{ backgroundColor: COLORS.pastel.green }}
-                onPress={handleInitializeBalance}
+                onPress={() => {
+                  setInitModalVisible(false);
+                  setInitAmount(null);
+                }}
               >
-                <Text style={{ color: COLORS.background }} className="text-base font-semibold">
-                  Initialize Balance
-                </Text>
+                <X size={24} color={COLORS.text.secondary} />
               </TouchableOpacity>
             </View>
-          </View>
-        </KeyboardAvoidingView>
+
+            <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">
+              Enter your current balance
+            </Text>
+            <View
+              className="rounded-xl mb-4 p-4 flex-row items-center"
+              style={{ backgroundColor: COLORS.surface }}
+            >
+              <Text style={{ color: COLORS.text.primary, fontSize: FONT_SIZES.base }}>$</Text>
+              <CurrencyInput
+                value={initAmount}
+                onChangeValue={setInitAmount}
+                prefix=""
+                delimiter=","
+                separator="."
+                precision={2}
+                minValue={0}
+                maxValue={999999.99}
+                keyboardType="number-pad"
+                style={{
+                  flex: 1,
+                  marginLeft: 4,
+                  color: COLORS.text.primary,
+                  fontSize: FONT_SIZES.base,
+                  includeFontPadding: false,
+                  padding: 0,
+                }}
+                placeholder="0.00"
+                placeholderTextColor={COLORS.text.muted}
+                autoFocus
+              />
+            </View>
+
+            <TouchableOpacity
+              className="rounded-xl py-3 items-center"
+              style={{ backgroundColor: COLORS.pastel.green }}
+              onPress={handleInitializeBalance}
+            >
+              <Text style={{ color: COLORS.background }} className="text-base font-semibold">
+                Initialize Balance
+              </Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </View>
   );

@@ -9,13 +9,9 @@ import {
   FlatList,
   ActivityIndicator,
   Alert,
-  Keyboard,
-  TouchableWithoutFeedback,
   RefreshControl,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
-import { CheckSquare, Square, Trash2, ShoppingBag } from 'lucide-react-native';
+import { CheckSquare, Square, Trash2, ShoppingBag, X } from 'lucide-react-native';
 import {
   getGroceryItems,
   createGroceryItem,
@@ -233,74 +229,72 @@ export default function GroceriesScreen(): React.JSX.Element {
       <FloatingActionButton onPress={() => setModalVisible(true)} />
 
       {/* Add Item Modal */}
-      <Modal visible={modalVisible} animationType="slide" transparent>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          className="flex-1"
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          setModalVisible(false);
+          setText('');
+        }}
+      >
+        <TouchableOpacity
+          className="flex-1 items-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)', paddingTop: '60%' }}
+          activeOpacity={1}
+          onPress={() => {
+            setModalVisible(false);
+            setText('');
+          }}
         >
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
-              <TouchableWithoutFeedback>
-                <View className="rounded-t-3xl p-6" style={{ backgroundColor: COLORS.card }}>
-                  <Text
-                    style={{ color: COLORS.text.primary }}
-                    className="text-xl font-bold mb-5 text-center"
-                  >
-                    New Grocery Item
-                  </Text>
-
-                  <Text
-                    style={{ color: COLORS.text.secondary }}
-                    className="text-base font-medium mb-2"
-                  >
-                    Item
-                  </Text>
-                  <TextInput
-                    className="rounded-xl mb-5 p-4"
-                    style={{
-                      backgroundColor: COLORS.surface,
-                      color: COLORS.text.primary,
-                      fontSize: 16,
-                      includeFontPadding: false,
-                    }}
-                    placeholderTextColor={COLORS.text.muted}
-                    placeholder="e.g., Milk, Eggs, Bread"
-                    value={text}
-                    onChangeText={setText}
-                    autoFocus
-                  />
-
-                  <View className="flex-row gap-3">
-                    <TouchableOpacity
-                      className="flex-1 p-4 rounded-xl items-center"
-                      style={{ backgroundColor: COLORS.surface }}
-                      onPress={() => setModalVisible(false)}
-                    >
-                      <Text
-                        style={{ color: COLORS.text.secondary }}
-                        className="text-base font-semibold"
-                      >
-                        Cancel
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      className="flex-1 p-4 rounded-xl items-center"
-                      style={{ backgroundColor: COLORS.pastel.blue }}
-                      onPress={addItem}
-                    >
-                      <Text
-                        style={{ color: COLORS.background }}
-                        className="text-base font-semibold"
-                      >
-                        Add Item
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </TouchableWithoutFeedback>
+          <TouchableOpacity
+            activeOpacity={1}
+            className="w-[85%] rounded-2xl p-5"
+            style={{ backgroundColor: COLORS.card }}
+          >
+            <View className="flex-row justify-between items-center mb-4">
+              <Text style={{ color: COLORS.text.primary }} className="text-xl font-bold">
+                Add Grocery Item
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setModalVisible(false);
+                  setText('');
+                }}
+              >
+                <X size={24} color={COLORS.text.secondary} />
+              </TouchableOpacity>
             </View>
-          </TouchableWithoutFeedback>
-        </KeyboardAvoidingView>
+
+            <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">
+              Item name
+            </Text>
+            <TextInput
+              className="rounded-xl mb-4 p-4"
+              style={{
+                backgroundColor: COLORS.surface,
+                color: COLORS.text.primary,
+                fontSize: 16,
+                includeFontPadding: false,
+              }}
+              placeholderTextColor={COLORS.text.muted}
+              placeholder="e.g., Milk, Eggs, Bread"
+              value={text}
+              onChangeText={setText}
+              autoFocus
+            />
+
+            <TouchableOpacity
+              className="rounded-xl py-3 items-center"
+              style={{ backgroundColor: COLORS.pastel.blue }}
+              onPress={addItem}
+            >
+              <Text style={{ color: COLORS.background }} className="text-base font-semibold">
+                Add Item
+              </Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </View>
   );
