@@ -116,6 +116,7 @@ export type Database = {
           description: string | null;
           priority: 'low' | 'medium' | 'high';
           completed: boolean;
+          sort_order: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -126,6 +127,7 @@ export type Database = {
           description?: string | null;
           priority: 'low' | 'medium' | 'high';
           completed?: boolean;
+          sort_order?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -136,6 +138,7 @@ export type Database = {
           description?: string | null;
           priority?: 'low' | 'medium' | 'high';
           completed?: boolean;
+          sort_order?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -224,6 +227,122 @@ export type Database = {
             columns: ['user_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      prayer_timetables: {
+        Row: {
+          id: string;
+          user_id: string;
+          year: number;
+          mosque_name: string | null;
+          source_url: string | null;
+          pdf_hash: string | null;
+          timezone: string;
+          is_active: boolean;
+          synced_at: string;
+          created_at: string;
+          updated_at: string;
+          city: string | null;
+          country: string | null;
+          calculation_method: number | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          year: number;
+          mosque_name?: string | null;
+          source_url?: string | null;
+          pdf_hash?: string | null;
+          timezone?: string;
+          is_active?: boolean;
+          synced_at?: string;
+          created_at?: string;
+          updated_at?: string;
+          city?: string | null;
+          country?: string | null;
+          calculation_method?: number | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          year?: number;
+          mosque_name?: string | null;
+          source_url?: string | null;
+          pdf_hash?: string | null;
+          timezone?: string;
+          is_active?: boolean;
+          synced_at?: string;
+          created_at?: string;
+          updated_at?: string;
+          city?: string | null;
+          country?: string | null;
+          calculation_method?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'prayer_timetables_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      prayer_times: {
+        Row: {
+          id: string;
+          user_id: string;
+          timetable_id: string;
+          date: string;
+          fajr: string;
+          dhuhr: string;
+          asr: string;
+          maghrib: string;
+          isha: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          timetable_id: string;
+          date: string;
+          fajr: string;
+          dhuhr: string;
+          asr: string;
+          maghrib: string;
+          isha: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          timetable_id?: string;
+          date?: string;
+          fajr?: string;
+          dhuhr?: string;
+          asr?: string;
+          maghrib?: string;
+          isha?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'prayer_times_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'prayer_times_timetable_id_fkey';
+            columns: ['timetable_id'];
+            isOneToOne: false;
+            referencedRelation: 'prayer_timetables';
             referencedColumns: ['id'];
           },
         ];

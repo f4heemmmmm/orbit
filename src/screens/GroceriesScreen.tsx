@@ -234,20 +234,6 @@ export default function GroceriesScreen(): React.JSX.Element {
               colors={[COLORS.pastel.blue]}
             />
           }
-          ListHeaderComponent={
-            items.length > 0 ? (
-              <TouchableOpacity
-                className="flex-row items-center justify-center py-3 px-4 rounded-xl mb-4"
-                style={{ backgroundColor: COLORS.pastel.red }}
-                onPress={deleteAllItems}
-              >
-                <Trash2 size={18} color={COLORS.background} />
-                <Text style={{ color: COLORS.background }} className="text-base font-semibold ml-2">
-                  Delete All
-                </Text>
-              </TouchableOpacity>
-            ) : null
-          }
           ListEmptyComponent={
             <View className="items-center justify-center pt-16">
               <ShoppingBag size={48} color={COLORS.text.muted} />
@@ -260,6 +246,18 @@ export default function GroceriesScreen(): React.JSX.Element {
             </View>
           }
         />
+      )}
+
+      {/* Delete All Button - Bottom Left */}
+      {items.length > 0 && (
+        <TouchableOpacity
+          className="absolute bottom-5 left-5 w-14 h-14 rounded-full items-center justify-center shadow-lg"
+          style={{ backgroundColor: COLORS.pastel.red }}
+          onPress={deleteAllItems}
+          activeOpacity={0.8}
+        >
+          <Trash2 size={24} color={COLORS.background} />
+        </TouchableOpacity>
       )}
 
       <FloatingActionButton onPress={() => setModalVisible(true)} />

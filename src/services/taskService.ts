@@ -13,6 +13,7 @@ type TaskUpdate = Database['public']['Tables']['tasks']['Update'];
 
 /**
  * Fetch all tasks for the current user
+ * Orders by sort_order if present, otherwise by created_at
  */
 export async function getTasks(): Promise<TaskRow[]> {
   try {
@@ -25,12 +26,32 @@ export async function getTasks(): Promise<TaskRow[]> {
       .from('tasks')
       .select('*')
       .eq('user_id', userId)
+      .order('sort_order', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: false });
 
     if (error) {
       throw error;
     }
-    return data || [];
+
+    // Sort tasks: those with sort_order first (by sort_order), then nulls (by created_at desc)
+    const sortedData = (data || []).sort((a, b) => {
+      // If both have sort_order, sort by sort_order ascending
+      if (a.sort_order !== null && b.sort_order !== null) {
+        return a.sort_order - b.sort_order;
+      }
+      // If only a has sort_order, a comes first
+      if (a.sort_order !== null) {
+        return -1;
+      }
+      // If only b has sort_order, b comes first
+      if (b.sort_order !== null) {
+        return 1;
+      }
+      // If neither has sort_order, sort by created_at descending
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+
+    return sortedData;
   } catch (error) {
     console.error('Error fetching tasks:', error);
     return [];
@@ -183,5 +204,95 @@ export async function getTasksByStatus(completed: boolean): Promise<TaskRow[]> {
   } catch (error) {
     console.error('Error fetching tasks by status:', error);
     return [];
+  }
+}
+
+/**
+ * Update sort_order for multiple tasks in batch
+ * @param orderedTaskIds Array of task IDs in the desired order
+ */
+export async function updateTaskSortOrder(orderedTaskIds: string[]): Promise<boolean> {
+  try {
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
+
+    // Update each task with its new sort_order
+    const updates = orderedTaskIds.map((taskId, index) =>
+      supabase.from('tasks').update({ sort_order: index }).eq('id', taskId).eq('user_id', userId)
+    );
+
+    const results = await Promise.all(updates);
+
+    // Check if any updates failed
+    const hasError = results.some(result => result.error);
+    if (hasError) {
+      console.error(
+        'Some updates failed:',
+        results.filter(r => r.error)
+      );
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error updating task sort order:', error);
+    return false;
+  }
+}
+
+/**
+ * Reset sort_order for all tasks (sets to null)
+ * Used for "Recover" functionality to restore default ordering
+ */
+export async function resetTaskSortOrder(): Promise<boolean> {
+  try {
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
+
+    const { error } = await supabase
+      .from('tasks')
+      .update({ sort_order: null })
+      .eq('user_id', userId);
+
+    if (error) {
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error resetting task sort order:', error);
+    return false;
+  }
+}
+
+/**
+ * Check if any tasks have a custom sort order
+ */
+export async function hasCustomSortOrder(): Promise<boolean> {
+  try {
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      return false;
+    }
+
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('sort_order')
+      .eq('user_id', userId)
+      .not('sort_order', 'is', null)
+      .limit(1);
+
+    if (error) {
+      throw error;
+    }
+
+    return (data?.length || 0) > 0;
+  } catch (error) {
+    console.error('Error checking custom sort order:', error);
+    return false;
   }
 }

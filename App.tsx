@@ -8,6 +8,7 @@ import {
   Calendar,
   ShoppingBag,
   Settings as SettingsIcon,
+  Moon,
 } from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
@@ -20,7 +21,10 @@ import TasksScreen from './src/screens/TasksScreen';
 import ViewTaskScreen, { type Task } from './src/screens/ViewTaskScreen';
 import GroceriesScreen from './src/screens/GroceriesScreen';
 import ScheduleScreen from './src/screens/ScheduleScreen';
+import PrayerTimesScreen from './src/screens/PrayerTimesScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import CitySearchScreen from './src/screens/CitySearchScreen';
+import CalculationMethodScreen from './src/screens/CalculationMethodScreen';
 import AuthScreen from './src/screens/AuthScreen';
 import { getCurrentUser } from './src/services/authService';
 import { ThemeProvider, useTheme } from './src/contexts/ThemeContext';
@@ -33,6 +37,7 @@ type TabParamList = {
   Tasks: undefined;
   Groceries: undefined;
   Schedule: undefined;
+  PrayerTimes: undefined;
   Settings: undefined;
 };
 
@@ -40,6 +45,8 @@ type RootStackParamList = {
   MainTabs: undefined;
   ViewTransaction: { transaction: FinancialsStackParamList['ViewTransaction']['transaction'] };
   ViewTask: { task: Task; onToggle?: (id: string) => void };
+  CitySearch: { onSelect?: (city: string, country: string) => void } | undefined;
+  CalculationMethod: { onSelect?: (method: number) => void } | undefined;
 };
 
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -113,6 +120,8 @@ function AppContent(): React.JSX.Element {
             return <ShoppingBag size={size} color={color} />;
           } else if (route.name === 'Schedule') {
             return <Calendar size={size} color={color} />;
+          } else if (route.name === 'PrayerTimes') {
+            return <Moon size={size} color={color} />;
           } else {
             return <SettingsIcon size={size} color={color} />;
           }
@@ -141,6 +150,7 @@ function AppContent(): React.JSX.Element {
       <Tab.Screen name="Tasks" component={TasksScreen} options={{ title: 'Tasks' }} />
       <Tab.Screen name="Groceries" component={GroceriesScreen} options={{ title: 'Groceries' }} />
       <Tab.Screen name="Schedule" component={ScheduleScreen} options={{ title: 'Schedule' }} />
+      <Tab.Screen name="PrayerTimes" component={PrayerTimesScreen} options={{ title: 'Prayer' }} />
       <Tab.Screen name="Settings" options={{ title: 'Settings' }}>
         {() => <SettingsScreen onSignOut={handleSignOut} />}
       </Tab.Screen>
@@ -161,6 +171,16 @@ function AppContent(): React.JSX.Element {
         <RootStack.Screen
           name="ViewTask"
           component={ViewTaskScreen}
+          options={{ animation: 'slide_from_right' }}
+        />
+        <RootStack.Screen
+          name="CitySearch"
+          component={CitySearchScreen}
+          options={{ animation: 'slide_from_right' }}
+        />
+        <RootStack.Screen
+          name="CalculationMethod"
+          component={CalculationMethodScreen}
           options={{ animation: 'slide_from_right' }}
         />
       </RootStack.Navigator>

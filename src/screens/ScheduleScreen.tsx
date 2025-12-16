@@ -24,11 +24,14 @@ import {
   Calendar,
   X,
   Clock,
+  Repeat,
 } from 'lucide-react-native';
 import {
   getScheduleEvents,
   createScheduleEvent,
   deleteScheduleEvent,
+  createRecurringEvents,
+  generateRecurringDates,
 } from '../services/scheduleService';
 import { useTheme } from '../contexts/ThemeContext';
 import { getThemeColors } from '../constants/theme';
@@ -75,8 +78,16 @@ export default function ScheduleScreen(): React.JSX.Element {
   const [filterType, setFilterType] = useState<FilterType>('all');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurringEndDate, setRecurringEndDate] = useState<Date>(() => {
+    const date = new Date();
+    date.setMonth(date.getMonth() + 1);
+    return date;
+  });
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
   useEffect(() => {
     loadEvents();
@@ -141,41 +152,116 @@ export default function ScheduleScreen(): React.JSX.Element {
       return;
     }
 
+    if (saving) {
+      return;
+    }
+
     try {
-      const newEvent = await createScheduleEvent({
-        title: title.trim(),
-        description: description.trim(),
-        type: selectedType,
-        date: formatDateForDB(selectedDate),
-        time: formatTimeForDB(selectedDate),
-      });
+      setSaving(true);
 
-      if (newEvent) {
-        const formattedEvent: ScheduleEvent = {
-          id: newEvent.id,
-          title: newEvent.title,
-          description: newEvent.description || '',
-          type: newEvent.type,
-          date: newEvent.date,
-          time: newEvent.time,
-        };
+      if (isRecurring) {
+        // Validate end date is after start date
+        if (recurringEndDate <= selectedDate) {
+          Alert.alert('Invalid Date', 'End date must be after start date.');
+          setSaving(false);
+          return;
+        }
 
-        const updatedEvents = [...events, formattedEvent].sort((a, b) => {
-          if (a.date !== b.date) {
-            return a.date.localeCompare(b.date);
+        // Calculate how many events will be created
+        const previewDates = generateRecurringDates(
+          selectedDate,
+          recurringEndDate,
+          selectedDate.getDay()
+        );
+
+        if (previewDates.length === 0) {
+          Alert.alert('No Events', 'No events would be created with the selected date range.');
+          setSaving(false);
+          return;
+        }
+
+        // Create recurring events
+        const result = await createRecurringEvents(
+          {
+            title: title.trim(),
+            description: description.trim(),
+            type: selectedType,
+            time: formatTimeForDB(selectedDate),
+          },
+          selectedDate,
+          recurringEndDate
+        );
+
+        if (result.created.length > 0) {
+          const formattedEvents: ScheduleEvent[] = result.created.map(e => ({
+            id: e.id,
+            title: e.title,
+            description: e.description || '',
+            type: e.type,
+            date: e.date,
+            time: e.time,
+          }));
+
+          const updatedEvents = [...events, ...formattedEvents].sort((a, b) => {
+            if (a.date !== b.date) {
+              return a.date.localeCompare(b.date);
+            }
+            return a.time.localeCompare(b.time);
+          });
+
+          setEvents(updatedEvents);
+
+          if (result.failed > 0) {
+            Alert.alert(
+              'Partial Success',
+              `Created ${result.created.length} events. ${result.failed} failed.`
+            );
           }
-          return a.time.localeCompare(b.time);
+
+          resetForm();
+          setModalVisible(false);
+        } else {
+          Alert.alert('Error', 'Failed to create recurring events. Please try again.');
+        }
+      } else {
+        // Single event creation
+        const newEvent = await createScheduleEvent({
+          title: title.trim(),
+          description: description.trim(),
+          type: selectedType,
+          date: formatDateForDB(selectedDate),
+          time: formatTimeForDB(selectedDate),
         });
 
-        setEvents(updatedEvents);
-        resetForm();
-        setModalVisible(false);
-      } else {
-        Alert.alert('Error', 'Failed to add event. Please try again.');
+        if (newEvent) {
+          const formattedEvent: ScheduleEvent = {
+            id: newEvent.id,
+            title: newEvent.title,
+            description: newEvent.description || '',
+            type: newEvent.type,
+            date: newEvent.date,
+            time: newEvent.time,
+          };
+
+          const updatedEvents = [...events, formattedEvent].sort((a, b) => {
+            if (a.date !== b.date) {
+              return a.date.localeCompare(b.date);
+            }
+            return a.time.localeCompare(b.time);
+          });
+
+          setEvents(updatedEvents);
+          resetForm();
+          setModalVisible(false);
+        } else {
+          Alert.alert('Error', 'Failed to add event. Please try again.');
+        }
       }
     } catch (error) {
       console.error('Error adding event:', error);
       Alert.alert('Error', 'Failed to add event. Please try again.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -184,6 +270,10 @@ export default function ScheduleScreen(): React.JSX.Element {
     setDescription('');
     setSelectedDate(new Date());
     setSelectedType('other');
+    setIsRecurring(false);
+    const defaultEndDate = new Date();
+    defaultEndDate.setMonth(defaultEndDate.getMonth() + 1);
+    setRecurringEndDate(defaultEndDate);
   };
 
   const deleteEvent = async (id: string): Promise<void> => {
@@ -274,6 +364,26 @@ export default function ScheduleScreen(): React.JSX.Element {
     if (time) {
       setSelectedDate(time);
     }
+  };
+
+  const onEndDateChange = (event: DateTimePickerEvent, date?: Date): void => {
+    if (Platform.OS === 'android') {
+      setShowEndDatePicker(false);
+    }
+    if (date) {
+      setRecurringEndDate(date);
+    }
+  };
+
+  const getDayName = (date: Date): string => {
+    return date.toLocaleDateString('en-US', { weekday: 'long' });
+  };
+
+  const getRecurringEventCount = (): number => {
+    if (!isRecurring || recurringEndDate <= selectedDate) {
+      return 0;
+    }
+    return generateRecurringDates(selectedDate, recurringEndDate, selectedDate.getDay()).length;
   };
 
   const typeCounts = EVENT_TYPES.reduce<Record<string, number>>((acc, type) => {
@@ -542,6 +652,90 @@ export default function ScheduleScreen(): React.JSX.Element {
                     />
                   )}
 
+                  {/* Recurring Event Toggle */}
+                  <Text
+                    style={{ color: COLORS.text.secondary }}
+                    className="text-base font-medium mb-2"
+                  >
+                    Recurring Event
+                  </Text>
+                  <TouchableOpacity
+                    className="rounded-xl p-4 flex-row items-center justify-between mb-3"
+                    style={{ backgroundColor: COLORS.surface }}
+                    onPress={() => setIsRecurring(!isRecurring)}
+                    activeOpacity={0.7}
+                  >
+                    <View className="flex-row items-center">
+                      <Repeat
+                        size={20}
+                        color={isRecurring ? COLORS.pastel.purple : COLORS.text.secondary}
+                      />
+                      <Text className="text-base ml-3" style={{ color: COLORS.text.primary }}>
+                        Repeat every {getDayName(selectedDate)}
+                      </Text>
+                    </View>
+                    <View
+                      className="w-12 h-7 rounded-full justify-center"
+                      style={{
+                        backgroundColor: isRecurring ? COLORS.pastel.purple : COLORS.surface,
+                        borderWidth: isRecurring ? 0 : 1,
+                        borderColor: COLORS.text.muted,
+                      }}
+                    >
+                      <View
+                        className="w-5 h-5 rounded-full"
+                        style={{
+                          backgroundColor: isRecurring ? COLORS.background : COLORS.text.muted,
+                          marginLeft: isRecurring ? 24 : 3,
+                        }}
+                      />
+                    </View>
+                  </TouchableOpacity>
+
+                  {isRecurring && (
+                    <>
+                      <Text
+                        style={{ color: COLORS.text.secondary }}
+                        className="text-base font-medium mb-2"
+                      >
+                        Repeat Until
+                      </Text>
+                      <TouchableOpacity
+                        className="rounded-xl p-4 flex-row items-center mb-3"
+                        style={{ backgroundColor: COLORS.surface }}
+                        onPress={() => setShowEndDatePicker(true)}
+                      >
+                        <Calendar size={20} color={COLORS.pastel.purple} />
+                        <Text className="text-base ml-3" style={{ color: COLORS.text.primary }}>
+                          {formatPickerDate(recurringEndDate)}
+                        </Text>
+                      </TouchableOpacity>
+
+                      {showEndDatePicker && (
+                        <DateTimePicker
+                          value={recurringEndDate}
+                          mode="date"
+                          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                          onChange={onEndDateChange}
+                          minimumDate={selectedDate}
+                          themeVariant={themeMode}
+                        />
+                      )}
+
+                      {getRecurringEventCount() > 0 && (
+                        <View
+                          className="rounded-xl p-3 mb-3 flex-row items-center"
+                          style={{ backgroundColor: COLORS.pastel.purple + '20' }}
+                        >
+                          <Repeat size={16} color={COLORS.pastel.purple} />
+                          <Text className="text-sm ml-2" style={{ color: COLORS.pastel.purple }}>
+                            This will create {getRecurringEventCount()} events
+                          </Text>
+                        </View>
+                      )}
+                    </>
+                  )}
+
                   <Text
                     style={{ color: COLORS.text.secondary }}
                     className="text-base font-medium mb-2"
@@ -584,11 +778,14 @@ export default function ScheduleScreen(): React.JSX.Element {
                 <View className="flex-row gap-3 pb-8">
                   <TouchableOpacity
                     className="flex-1 p-4 rounded-xl items-center"
-                    style={{ backgroundColor: COLORS.surface }}
+                    style={{ backgroundColor: COLORS.surface, opacity: saving ? 0.5 : 1 }}
                     onPress={() => {
-                      setModalVisible(false);
-                      resetForm();
+                      if (!saving) {
+                        setModalVisible(false);
+                        resetForm();
+                      }
                     }}
+                    disabled={saving}
                   >
                     <Text
                       style={{ color: COLORS.text.secondary }}
@@ -599,12 +796,20 @@ export default function ScheduleScreen(): React.JSX.Element {
                   </TouchableOpacity>
                   <TouchableOpacity
                     className="flex-1 p-4 rounded-xl items-center"
-                    style={{ backgroundColor: COLORS.pastel.blue }}
+                    style={{ backgroundColor: COLORS.pastel.blue, opacity: saving ? 0.7 : 1 }}
                     onPress={addEvent}
+                    disabled={saving}
                   >
-                    <Text style={{ color: COLORS.background }} className="text-base font-semibold">
-                      Add
-                    </Text>
+                    {saving ? (
+                      <ActivityIndicator size="small" color={COLORS.background} />
+                    ) : (
+                      <Text
+                        style={{ color: COLORS.background }}
+                        className="text-base font-semibold"
+                      >
+                        {isRecurring ? `Add ${getRecurringEventCount() || ''} Events` : 'Add'}
+                      </Text>
+                    )}
                   </TouchableOpacity>
                 </View>
               </View>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,11 +9,31 @@ import {
   Switch,
   SafeAreaView,
 } from 'react-native';
-import { LogOut, Trash2, Moon, Sun, User } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
+import {
+  LogOut,
+  Trash2,
+  Moon,
+  Sun,
+  User,
+  RefreshCw,
+  MapPin,
+  Calculator,
+  ChevronRight,
+} from 'lucide-react-native';
 import { signOut, deleteAccount, getCurrentUser } from '../services/authService';
+import {
+  syncPrayerCalendar,
+  getActiveTimetable,
+  deletePrayerData,
+  getPrayerSettings,
+} from '../services/prayerService';
+import { CALCULATION_METHODS, type TimetableInfo, type UserPrayerSettings } from '../types';
 import { clearAllStorage } from '../services/storageService';
 import { useTheme } from '../contexts/ThemeContext';
 import { getThemeColors } from '../constants/theme';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../../App';
 
 interface SettingsScreenProps {
   onSignOut: () => void;
@@ -22,13 +42,28 @@ interface SettingsScreenProps {
 export default function SettingsScreen({ onSignOut }: SettingsScreenProps): React.JSX.Element {
   const { themeMode, toggleTheme } = useTheme();
   const COLORS = getThemeColors(themeMode);
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [loading, setLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [userEmail, setUserEmail] = useState<string>('');
+  const [timetableInfo, setTimetableInfo] = useState<TimetableInfo | null>(null);
+  const [prayerSettings, setPrayerSettings] = useState<UserPrayerSettings | null>(null);
 
-  // Load user email on mount
+  // Load user and timetable info on mount
   React.useEffect(() => {
     loadUserInfo();
+    loadTimetableInfo();
+    loadPrayerSettings();
   }, []);
+
+  const loadPrayerSettings = async (): Promise<void> => {
+    try {
+      const settings = await getPrayerSettings();
+      setPrayerSettings(settings);
+    } catch (error) {
+      console.error('Error loading prayer settings:', error);
+    }
+  };
 
   const loadUserInfo = async (): Promise<void> => {
     try {
@@ -39,6 +74,104 @@ export default function SettingsScreen({ onSignOut }: SettingsScreenProps): Reac
     } catch (error) {
       console.error('Error loading user info:', error);
     }
+  };
+
+  const loadTimetableInfo = async (): Promise<void> => {
+    try {
+      const info = await getActiveTimetable();
+      setTimetableInfo(info);
+    } catch (error) {
+      console.error('Error loading timetable info:', error);
+    }
+  };
+
+  const handleSyncPrayerCalendar = async (): Promise<void> => {
+    if (syncing) {
+      return;
+    }
+
+    // Check if city is selected
+    if (!prayerSettings?.city || !prayerSettings?.country) {
+      Alert.alert('Select Location', 'Please select a city first before syncing prayer times.', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Select City',
+          onPress: () => navigation.navigate('CitySearch' as never),
+        },
+      ]);
+      return;
+    }
+
+    try {
+      setSyncing(true);
+
+      // Delete old prayer data first
+      console.log('[Settings] Step 1: Deleting old prayer data...');
+      await deletePrayerData();
+
+      console.log('[Settings] Step 2: Calling sync...');
+      const result = await syncPrayerCalendar(
+        prayerSettings.city,
+        prayerSettings.country,
+        prayerSettings.calculationMethod || 3
+      );
+      console.log('[Settings] Sync result:', result);
+
+      if (result.success) {
+        Alert.alert(
+          'Sync Complete',
+          `Successfully imported ${result.daysImported} days of prayer times for ${prayerSettings.city}, ${prayerSettings.country}.`
+        );
+        await loadTimetableInfo();
+      } else {
+        Alert.alert('Sync Failed', result.message || 'Please try again later.');
+      }
+    } catch (error) {
+      console.error('Error syncing prayer calendar:', error);
+      Alert.alert('Error', 'An unexpected error occurred while syncing.');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleCitySelect = useCallback(async () => {
+    // Navigate to city search and reload settings when returning
+    navigation.navigate('CitySearch', {
+      onSelect: () => loadPrayerSettings(),
+    });
+  }, [navigation]);
+
+  const handleMethodSelect = useCallback(async () => {
+    navigation.navigate('CalculationMethod', {
+      onSelect: () => loadPrayerSettings(),
+    });
+  }, [navigation]);
+
+  const getMethodName = (methodId: number | null | undefined): string => {
+    if (!methodId) {
+      return 'MWL (Default)';
+    }
+    const method = CALCULATION_METHODS.find(m => m.id === methodId);
+    return method?.name || 'Unknown';
+  };
+
+  const getLocationDisplay = (): string => {
+    if (prayerSettings?.city && prayerSettings?.country) {
+      return `${prayerSettings.city}, ${prayerSettings.country}`;
+    }
+    return 'Not selected';
+  };
+
+  const formatLastSyncDate = (): string => {
+    if (!timetableInfo) {
+      return 'Never synced';
+    }
+    const date = new Date(timetableInfo.syncedAt);
+    return `Last synced: ${date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })}`;
   };
 
   const handleSignOut = (): void => {
@@ -165,6 +298,81 @@ export default function SettingsScreen({ onSignOut }: SettingsScreenProps): Reac
                 ios_backgroundColor={COLORS.surface}
               />
             </View>
+          </View>
+        </View>
+
+        {/* Prayer Settings Section */}
+        <View className="px-4 pb-4">
+          <Text
+            style={{ color: COLORS.text.secondary }}
+            className="text-xs font-semibold mb-2 px-2"
+          >
+            PRAYER SETTINGS
+          </Text>
+          <View className="rounded-2xl overflow-hidden" style={{ backgroundColor: COLORS.card }}>
+            {/* Location Selector */}
+            <TouchableOpacity
+              className="flex-row items-center p-4 border-b"
+              style={{ borderBottomColor: COLORS.surface }}
+              onPress={handleCitySelect}
+              activeOpacity={0.7}
+            >
+              <MapPin size={22} color={COLORS.pastel.blue} />
+              <View className="ml-3 flex-1">
+                <Text style={{ color: COLORS.text.primary }} className="text-base font-medium">
+                  Location
+                </Text>
+                <Text style={{ color: COLORS.text.secondary }} className="text-xs mt-0.5">
+                  {getLocationDisplay()}
+                </Text>
+              </View>
+              <ChevronRight size={20} color={COLORS.text.muted} />
+            </TouchableOpacity>
+
+            {/* Calculation Method Selector */}
+            <TouchableOpacity
+              className="flex-row items-center p-4 border-b"
+              style={{ borderBottomColor: COLORS.surface }}
+              onPress={handleMethodSelect}
+              activeOpacity={0.7}
+            >
+              <Calculator size={22} color={COLORS.pastel.purple} />
+              <View className="ml-3 flex-1">
+                <Text style={{ color: COLORS.text.primary }} className="text-base font-medium">
+                  Calculation Method
+                </Text>
+                <Text
+                  style={{ color: COLORS.text.secondary }}
+                  className="text-xs mt-0.5"
+                  numberOfLines={1}
+                >
+                  {getMethodName(prayerSettings?.calculationMethod)}
+                </Text>
+              </View>
+              <ChevronRight size={20} color={COLORS.text.muted} />
+            </TouchableOpacity>
+
+            {/* Sync Button */}
+            <TouchableOpacity
+              className="flex-row items-center p-4"
+              onPress={handleSyncPrayerCalendar}
+              disabled={syncing || loading}
+              activeOpacity={0.7}
+            >
+              {syncing ? (
+                <ActivityIndicator size={22} color={COLORS.pastel.teal} />
+              ) : (
+                <RefreshCw size={22} color={COLORS.pastel.teal} />
+              )}
+              <View className="ml-3 flex-1">
+                <Text style={{ color: COLORS.text.primary }} className="text-base font-medium">
+                  {syncing ? 'Syncing...' : 'Sync Prayer Calendar'}
+                </Text>
+                <Text style={{ color: COLORS.text.secondary }} className="text-xs mt-0.5">
+                  {formatLastSyncDate()}
+                </Text>
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
 

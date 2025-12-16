@@ -14,7 +14,7 @@ import {
   RefreshControl,
   ScrollView,
 } from 'react-native';
-import { Circle, X } from 'lucide-react-native';
+import { Circle, X, Sparkles, RotateCcw } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
@@ -22,7 +22,11 @@ import {
   createTask,
   toggleTaskCompletion,
   deleteTask as deleteTaskService,
+  updateTaskSortOrder,
+  resetTaskSortOrder,
+  hasCustomSortOrder,
 } from '../services/taskService';
+import { prioritizeTasks } from '../services/aiService';
 import { useTheme } from '../contexts/ThemeContext';
 import { getThemeColors } from '../constants/theme';
 import FloatingActionButton from '../components/FloatingActionButton';
@@ -70,11 +74,19 @@ export default function TasksScreen(): React.JSX.Element {
   const [filter, setFilter] = useState<FilterType>('pending');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [prioritizing, setPrioritizing] = useState(false);
+  const [hasSortOrder, setHasSortOrder] = useState(false);
 
   // Fetch tasks on mount
   useEffect(() => {
     loadTasks();
+    checkSortOrder();
   }, []);
+
+  const checkSortOrder = async (): Promise<void> => {
+    const hasOrder = await hasCustomSortOrder();
+    setHasSortOrder(hasOrder);
+  };
 
   const loadTasks = async (): Promise<void> => {
     try {
@@ -206,6 +218,105 @@ export default function TasksScreen(): React.JSX.Element {
     }
   };
 
+  const handlePrioritize = async (): Promise<void> => {
+    const pendingTasks = tasks.filter(t => !t.completed);
+    if (pendingTasks.length < 2) {
+      Alert.alert('Not Enough Tasks', 'You need at least 2 pending tasks to prioritize.');
+      return;
+    }
+
+    Alert.alert(
+      'AI Prioritization',
+      'This will use AI to analyze and reorder your tasks by urgency. Your task data will be sent to OpenAI for analysis. Continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Prioritize',
+          onPress: async () => {
+            try {
+              setPrioritizing(true);
+
+              const tasksForAI = tasks.map(t => ({
+                id: t.id,
+                title: t.title,
+                description: t.description,
+                priority: t.priority,
+                completed: t.completed,
+              }));
+
+              const result = await prioritizeTasks(tasksForAI);
+
+              if (!result.success) {
+                Alert.alert('Error', result.error || 'Failed to prioritize tasks.');
+                return;
+              }
+
+              if (result.orderedTaskIds.length === 0) {
+                Alert.alert('No Tasks', 'No pending tasks to prioritize.');
+                return;
+              }
+
+              // Update sort_order in database
+              const updateSuccess = await updateTaskSortOrder(result.orderedTaskIds);
+
+              if (!updateSuccess) {
+                Alert.alert('Error', 'Failed to save new task order.');
+                return;
+              }
+
+              // Reload tasks to get new order
+              await loadTasks();
+              setHasSortOrder(true);
+
+              Alert.alert('Success', 'Tasks have been prioritized by AI!');
+            } catch (error) {
+              console.error('Error prioritizing tasks:', error);
+              Alert.alert('Error', 'An unexpected error occurred.');
+            } finally {
+              setPrioritizing(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleRecover = async (): Promise<void> => {
+    Alert.alert(
+      'Restore Default Order',
+      'This will reset all tasks to their original order (by creation date). Continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Restore',
+          onPress: async () => {
+            try {
+              setPrioritizing(true);
+
+              const success = await resetTaskSortOrder();
+
+              if (!success) {
+                Alert.alert('Error', 'Failed to reset task order.');
+                return;
+              }
+
+              // Reload tasks to get default order
+              await loadTasks();
+              setHasSortOrder(false);
+
+              Alert.alert('Success', 'Task order has been restored.');
+            } catch (error) {
+              console.error('Error resetting task order:', error);
+              Alert.alert('Error', 'An unexpected error occurred.');
+            } finally {
+              setPrioritizing(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const filteredTasks = tasks.filter(task => {
     if (filter === 'completed') {
       return task.completed;
@@ -301,12 +412,52 @@ export default function TasksScreen(): React.JSX.Element {
         ))}
       </View>
 
+      {/* AI Prioritization Buttons */}
+      <View className="flex-row px-4 mb-3 gap-2">
+        <TouchableOpacity
+          className="flex-1 py-2.5 rounded-xl flex-row items-center justify-center"
+          style={{
+            backgroundColor: COLORS.pastel.purple,
+            opacity: prioritizing ? 0.7 : 1,
+          }}
+          onPress={handlePrioritize}
+          disabled={prioritizing}
+        >
+          {prioritizing ? (
+            <ActivityIndicator size="small" color={COLORS.background} />
+          ) : (
+            <>
+              <Sparkles size={16} color={COLORS.background} />
+              <Text className="text-sm font-semibold ml-1.5" style={{ color: COLORS.background }}>
+                Prioritize
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+        {hasSortOrder && (
+          <TouchableOpacity
+            className="py-2.5 px-4 rounded-xl flex-row items-center justify-center"
+            style={{
+              backgroundColor: COLORS.card,
+              opacity: prioritizing ? 0.7 : 1,
+            }}
+            onPress={handleRecover}
+            disabled={prioritizing}
+          >
+            <RotateCcw size={16} color={COLORS.text.secondary} />
+            <Text className="text-sm font-medium ml-1.5" style={{ color: COLORS.text.secondary }}>
+              Reset
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
       {/* Tasks List */}
-      {loading ? (
+      {loading || prioritizing ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={COLORS.pastel.blue} />
           <Text style={{ color: COLORS.text.muted }} className="text-base mt-3">
-            Loading tasks...
+            {prioritizing ? 'Processing...' : 'Loading tasks...'}
           </Text>
         </View>
       ) : (
