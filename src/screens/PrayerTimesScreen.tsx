@@ -166,6 +166,17 @@ export default function PrayerTimesScreen(): React.JSX.Element {
   const prayers = todayPrayers ? buildPrayerList() : [];
   const nextPrayer = prayers.find(p => p.isNext);
 
+  // Check if next prayer is tomorrow (all today's prayers have passed, so Fajr is next)
+  const isNextPrayerTomorrow =
+    nextPrayer?.name === 'fajr' && currentMinutes > timeToMinutes(todayPrayers?.isha || '23:59');
+
+  const getNextPrayerDateLabel = (): string => {
+    if (isNextPrayerTomorrow) {
+      return 'Tomorrow';
+    }
+    return 'Today';
+  };
+
   const formatDate = (date: Date): string => {
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
@@ -233,7 +244,7 @@ export default function PrayerTimesScreen(): React.JSX.Element {
     >
       {/* Today's Date Header */}
       <View className="mb-4">
-        <Text style={{ color: COLORS.text.primary }} className="text-2xl font-bold">
+        <Text style={{ color: COLORS.text.primary }} className="text-2xl font-semibold">
           {formatDate(new Date())}
         </Text>
         {timetableInfo?.city && timetableInfo?.country && (
@@ -248,9 +259,22 @@ export default function PrayerTimesScreen(): React.JSX.Element {
         <View className="rounded-2xl p-5 mb-4" style={{ backgroundColor: COLORS.pastel.purple }}>
           <View className="flex-row items-center justify-between">
             <View>
-              <Text style={{ color: COLORS.background }} className="text-sm font-medium opacity-80">
-                Next Prayer
-              </Text>
+              <View className="flex-row items-center">
+                <Text
+                  style={{ color: COLORS.background }}
+                  className="text-sm font-medium opacity-80"
+                >
+                  Next Prayer
+                </Text>
+                <View
+                  className="ml-2 px-2 py-0.5 rounded-full"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+                >
+                  <Text style={{ color: COLORS.background }} className="text-xs font-medium">
+                    {getNextPrayerDateLabel()}
+                  </Text>
+                </View>
+              </View>
               <Text style={{ color: COLORS.background }} className="text-3xl font-bold mt-1">
                 {nextPrayer.displayName}
               </Text>
