@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Wallet, X } from 'lucide-react-native';
+import { X, TrendingUp, TrendingDown, Wallet } from 'lucide-react-native';
 import CurrencyInput from 'react-native-currency-input';
 import AddTransactionModal from '../components/AddTransactionModal';
 import SwipeableTransactionItem from '../components/SwipeableTransactionItem';
@@ -243,12 +243,16 @@ export default function FinancialsScreen(): React.JSX.Element {
     );
   };
 
+  // Calculate ratio for visual bar
+  const totalFlow = totalIncome + totalExpenses;
+  const incomeRatio = totalFlow > 0 ? (totalIncome / totalFlow) * 100 : 50;
+
   return (
     <View className="flex-1" style={{ backgroundColor: COLORS.background }}>
-      {/* Summary Cards */}
-      <View className="p-4">
+      {/* Compact Stats Bar */}
+      <View className="p-4 pb-2">
         <TouchableOpacity
-          className="rounded-2xl p-5 items-center mb-3"
+          className="rounded-2xl p-4"
           style={{ backgroundColor: COLORS.card }}
           onPress={() => {
             if (transactions.length === 0) {
@@ -257,45 +261,84 @@ export default function FinancialsScreen(): React.JSX.Element {
           }}
           activeOpacity={transactions.length === 0 ? 0.7 : 1}
         >
-          <Text style={{ color: COLORS.text.secondary }} className="text-base mb-1">
-            Total Balance
-          </Text>
-          <Text
-            style={{ color: balance >= 0 ? COLORS.pastel.green : COLORS.pastel.red }}
-            className="text-2xl font-bold"
-          >
-            ${balance.toFixed(2)}
-          </Text>
-          {transactions.length === 0 && (
-            <Text style={{ color: COLORS.text.muted }} className="text-xs mt-1">
+          {/* Balance Header */}
+          <View className="mb-4">
+            <Text style={{ color: COLORS.text.muted }} className="text-xs mb-1">
+              Total Balance
+            </Text>
+            <Text
+              style={{ color: balance >= 0 ? COLORS.pastel.green : COLORS.pastel.red }}
+              className="text-3xl font-bold"
+            >
+              ${Math.abs(balance).toFixed(2)}
+            </Text>
+          </View>
+
+          {transactions.length === 0 ? (
+            <Text style={{ color: COLORS.text.muted }} className="text-xs text-center">
               Tap to set initial balance
             </Text>
+          ) : (
+            <>
+              {/* Income vs Expense Visual Bar */}
+              <View className="flex-row h-2 rounded-full overflow-hidden mb-4">
+                <View
+                  className="h-full"
+                  style={{
+                    backgroundColor: COLORS.pastel.green,
+                    width: `${incomeRatio}%`,
+                  }}
+                />
+                <View
+                  className="h-full"
+                  style={{
+                    backgroundColor: COLORS.pastel.red,
+                    width: `${100 - incomeRatio}%`,
+                  }}
+                />
+              </View>
+
+              {/* Income & Expense Row */}
+              <View className="flex-row items-center justify-between">
+                {/* Income */}
+                <View className="flex-row items-center flex-1">
+                  <View
+                    className="w-9 h-9 rounded-full items-center justify-center"
+                    style={{ backgroundColor: COLORS.pastel.green + '20' }}
+                  >
+                    <TrendingUp size={18} color={COLORS.pastel.green} />
+                  </View>
+                  <View className="ml-2">
+                    <Text style={{ color: COLORS.pastel.green }} className="text-lg font-bold">
+                      ${totalIncome.toFixed(2)}
+                    </Text>
+                    <Text style={{ color: COLORS.text.muted }} className="text-xs">
+                      Income
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Expenses */}
+                <View className="flex-row items-center flex-1 justify-end">
+                  <View className="mr-2 items-end">
+                    <Text style={{ color: COLORS.pastel.red }} className="text-lg font-bold">
+                      ${totalExpenses.toFixed(2)}
+                    </Text>
+                    <Text style={{ color: COLORS.text.muted }} className="text-xs">
+                      Expenses
+                    </Text>
+                  </View>
+                  <View
+                    className="w-9 h-9 rounded-full items-center justify-center"
+                    style={{ backgroundColor: COLORS.pastel.red + '20' }}
+                  >
+                    <TrendingDown size={18} color={COLORS.pastel.red} />
+                  </View>
+                </View>
+              </View>
+            </>
           )}
         </TouchableOpacity>
-        <View className="flex-row gap-3">
-          <View
-            className="flex-1 rounded-2xl p-5 items-center"
-            style={{ backgroundColor: COLORS.card }}
-          >
-            <Text style={{ color: COLORS.text.secondary }} className="text-base">
-              Income
-            </Text>
-            <Text style={{ color: COLORS.pastel.green }} className="text-xl font-bold">
-              ${totalIncome.toFixed(2)}
-            </Text>
-          </View>
-          <View
-            className="flex-1 rounded-2xl p-5 items-center"
-            style={{ backgroundColor: COLORS.card }}
-          >
-            <Text style={{ color: COLORS.text.secondary }} className="text-base">
-              Expenses
-            </Text>
-            <Text style={{ color: COLORS.pastel.red }} className="text-xl font-bold">
-              ${totalExpenses.toFixed(2)}
-            </Text>
-          </View>
-        </View>
       </View>
 
       <ScrollView

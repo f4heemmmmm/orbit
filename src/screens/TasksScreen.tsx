@@ -14,7 +14,7 @@ import {
   RefreshControl,
   ScrollView,
 } from 'react-native';
-import { Circle, X, Sparkles, RotateCcw } from 'lucide-react-native';
+import { Circle, X, Sparkles, RotateCcw, CheckCircle2, Clock } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
@@ -356,40 +356,77 @@ export default function TasksScreen(): React.JSX.Element {
 
   return (
     <View className="flex-1" style={{ backgroundColor: COLORS.background }}>
-      {/* Stats */}
-      <View className="flex-row p-4 gap-3">
-        <View
-          className="flex-1 rounded-2xl p-4 items-center"
-          style={{ backgroundColor: COLORS.card }}
-        >
-          <Text style={{ color: COLORS.pastel.blue }} className="text-3xl font-bold">
-            {tasks.length}
-          </Text>
-          <Text style={{ color: COLORS.text.secondary }} className="text-xs mt-1">
-            Total
-          </Text>
-        </View>
-        <View
-          className="flex-1 rounded-2xl p-4 items-center"
-          style={{ backgroundColor: COLORS.card }}
-        >
-          <Text style={{ color: COLORS.pastel.green }} className="text-3xl font-bold">
-            {completedCount}
-          </Text>
-          <Text style={{ color: COLORS.text.secondary }} className="text-xs mt-1">
-            Completed
-          </Text>
-        </View>
-        <View
-          className="flex-1 rounded-2xl p-4 items-center"
-          style={{ backgroundColor: COLORS.card }}
-        >
-          <Text style={{ color: COLORS.pastel.orange }} className="text-3xl font-bold">
-            {pendingCount}
-          </Text>
-          <Text style={{ color: COLORS.text.secondary }} className="text-xs mt-1">
-            Pending
-          </Text>
+      {/* Compact Stats Bar */}
+      <View className="p-4 pb-2">
+        <View className="rounded-2xl p-4" style={{ backgroundColor: COLORS.card }}>
+          {/* Progress Bar */}
+          <View
+            className="h-2 rounded-full overflow-hidden mb-4"
+            style={{ backgroundColor: COLORS.surface }}
+          >
+            <View
+              className="h-full rounded-full"
+              style={{
+                backgroundColor: COLORS.pastel.green,
+                width: tasks.length > 0 ? `${(completedCount / tasks.length) * 100}%` : '0%',
+              }}
+            />
+          </View>
+
+          {/* Stats Row */}
+          <View className="flex-row items-center justify-between">
+            {/* Completed */}
+            <View className="flex-row items-center flex-1">
+              <View
+                className="w-9 h-9 rounded-full items-center justify-center"
+                style={{ backgroundColor: COLORS.pastel.green + '20' }}
+              >
+                <CheckCircle2 size={18} color={COLORS.pastel.green} />
+              </View>
+              <View className="ml-2">
+                <Text style={{ color: COLORS.pastel.green }} className="text-xl font-bold">
+                  {completedCount}
+                </Text>
+                <Text style={{ color: COLORS.text.muted }} className="text-xs">
+                  Done
+                </Text>
+              </View>
+            </View>
+
+            {/* Divider */}
+            <View className="w-px h-10 mx-3" style={{ backgroundColor: COLORS.surface }} />
+
+            {/* Pending */}
+            <View className="flex-row items-center flex-1">
+              <View
+                className="w-9 h-9 rounded-full items-center justify-center"
+                style={{ backgroundColor: COLORS.pastel.orange + '20' }}
+              >
+                <Clock size={18} color={COLORS.pastel.orange} />
+              </View>
+              <View className="ml-2">
+                <Text style={{ color: COLORS.pastel.orange }} className="text-xl font-bold">
+                  {pendingCount}
+                </Text>
+                <Text style={{ color: COLORS.text.muted }} className="text-xs">
+                  Pending
+                </Text>
+              </View>
+            </View>
+
+            {/* Divider */}
+            <View className="w-px h-10 mx-3" style={{ backgroundColor: COLORS.surface }} />
+
+            {/* Completion Percentage */}
+            <View className="items-end">
+              <Text style={{ color: COLORS.pastel.blue }} className="text-xl font-bold">
+                {tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0}%
+              </Text>
+              <Text style={{ color: COLORS.text.muted }} className="text-xs">
+                Complete
+              </Text>
+            </View>
+          </View>
         </View>
       </View>
 
