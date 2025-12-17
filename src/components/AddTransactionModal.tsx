@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,16 +19,26 @@ import { useTheme } from '../contexts/ThemeContext';
 import { getThemeColors, FONT_SIZES } from '../constants/theme';
 import { formatDateTime } from '../utils/dateUtils';
 
+export interface TransactionInitialData {
+  title?: string;
+  description?: string;
+  amount?: number;
+  type?: 'income' | 'expense';
+  category?: TransactionCategory;
+}
+
 interface AddTransactionModalProps {
   visible: boolean;
   onClose: () => void;
   onAdd: (transaction: TransactionData) => void;
+  initialData?: TransactionInitialData;
 }
 
 export default function AddTransactionModal({
   visible,
   onClose,
   onAdd,
+  initialData,
 }: AddTransactionModalProps): React.JSX.Element {
   const { themeMode } = useTheme();
   const COLORS = getThemeColors(themeMode);
@@ -40,6 +50,27 @@ export default function AddTransactionModal({
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+
+  // Pre-fill form when initialData changes
+  useEffect(() => {
+    if (visible && initialData) {
+      if (initialData.title !== undefined) {
+        setTitle(initialData.title);
+      }
+      if (initialData.description !== undefined) {
+        setDescription(initialData.description);
+      }
+      if (initialData.amount !== undefined) {
+        setAmount(initialData.amount);
+      }
+      if (initialData.type !== undefined) {
+        setType(initialData.type);
+      }
+      if (initialData.category !== undefined) {
+        setSelectedCategory(initialData.category);
+      }
+    }
+  }, [visible, initialData]);
 
   const onDateChange = (event: DateTimePickerEvent, selectedDate?: Date): void => {
     if (Platform.OS === 'android') {

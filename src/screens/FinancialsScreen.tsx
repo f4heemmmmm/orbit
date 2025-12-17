@@ -10,11 +10,20 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { X, TrendingUp, TrendingDown, Wallet } from 'lucide-react-native';
+import {
+  X,
+  TrendingUp,
+  TrendingDown,
+  Camera,
+  Image as ImageIcon,
+  Wallet,
+  Plus,
+} from 'lucide-react-native';
 import CurrencyInput from 'react-native-currency-input';
-import AddTransactionModal from '../components/AddTransactionModal';
+import AddTransactionModal, {
+  type TransactionInitialData,
+} from '../components/AddTransactionModal';
 import SwipeableTransactionItem from '../components/SwipeableTransactionItem';
-import FloatingActionButton from '../components/FloatingActionButton';
 import type { Transaction, TransactionData } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 import { getThemeColors, FONT_SIZES } from '../constants/theme';
@@ -25,6 +34,7 @@ import {
   deleteTransaction,
   updateTransaction,
 } from '../services/transactionService';
+import { scanReceipt } from '../services/receiptService';
 
 type RootStackParamList = {
   MainTabs: undefined;
@@ -45,6 +55,11 @@ export default function FinancialsScreen(): React.JSX.Element {
   const [initModalVisible, setInitModalVisible] = useState(false);
   const [initAmount, setInitAmount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [scanOptionsVisible, setScanOptionsVisible] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [initialTransactionData, setInitialTransactionData] = useState<
+    TransactionInitialData | undefined
+  >(undefined);
 
   // Fetch transactions on mount
   useEffect(() => {
@@ -210,6 +225,64 @@ export default function FinancialsScreen(): React.JSX.Element {
         },
       },
     ]);
+  };
+
+  const handleScanReceipt = async (useCamera: boolean): Promise<void> => {
+    setScanOptionsVisible(false);
+    setScanning(true);
+
+    try {
+      const result = await scanReceipt(useCamera);
+
+      if (!result.success) {
+        setScanning(false);
+        if (result.error) {
+          Alert.alert('Scan Failed', result.error);
+        }
+        return;
+      }
+
+      if (result.data) {
+        // Pre-fill the transaction modal with scanned data
+        setInitialTransactionData({
+          title: result.data.title,
+          description: result.data.description,
+          amount: result.data.amount,
+          type: result.data.type,
+          category: result.data.category,
+        });
+
+        setScanning(false);
+
+        // Show confidence level to user
+        const confidenceMessage =
+          result.data.confidence === 'high'
+            ? 'Receipt scanned successfully!'
+            : result.data.confidence === 'medium'
+              ? 'Receipt scanned. Please verify the details.'
+              : 'Some details may be inaccurate. Please review carefully.';
+
+        Alert.alert('Receipt Scanned', confidenceMessage, [
+          {
+            text: 'Review & Add',
+            onPress: () => setModalVisible(true),
+          },
+        ]);
+      }
+    } catch {
+      setScanning(false);
+      Alert.alert('Error', 'An unexpected error occurred while scanning the receipt.');
+    }
+  };
+
+  const handleOpenAddModal = (): void => {
+    setInitialTransactionData(undefined);
+    setModalVisible(true);
+  };
+
+  const handleCloseAddModal = (): void => {
+    setModalVisible(false);
+    setInitialTransactionData(undefined);
   };
 
   // Group transactions by date
@@ -379,13 +452,120 @@ export default function FinancialsScreen(): React.JSX.Element {
         <View className="h-20" />
       </ScrollView>
 
-      <FloatingActionButton onPress={() => setModalVisible(true)} />
+      {/* Action Buttons Container */}
+      <View className="absolute bottom-5 right-5 flex-row items-center" style={{ gap: 12 }}>
+        {/* Scan Receipt Button */}
+        <TouchableOpacity
+          className="w-14 h-14 rounded-full items-center justify-center shadow-lg"
+          style={{ backgroundColor: COLORS.pastel.purple }}
+          onPress={() => setScanOptionsVisible(true)}
+          disabled={scanning}
+          activeOpacity={0.8}
+        >
+          <Camera size={26} color={COLORS.background} />
+        </TouchableOpacity>
+
+        {/* Add Transaction Button */}
+        <TouchableOpacity
+          className="w-14 h-14 rounded-full items-center justify-center shadow-lg"
+          style={{ backgroundColor: COLORS.pastel.blue }}
+          onPress={handleOpenAddModal}
+          activeOpacity={0.8}
+        >
+          <Plus size={30} color={COLORS.background} />
+        </TouchableOpacity>
+      </View>
 
       <AddTransactionModal
         visible={modalVisible}
-        onClose={() => setModalVisible(false)}
+        onClose={handleCloseAddModal}
         onAdd={handleAddTransaction}
+        initialData={initialTransactionData}
       />
+
+      {/* Scan Options Modal */}
+      <Modal
+        visible={scanOptionsVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setScanOptionsVisible(false)}
+      >
+        <TouchableOpacity
+          className="flex-1 justify-end"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+          activeOpacity={1}
+          onPress={() => setScanOptionsVisible(false)}
+        >
+          <TouchableOpacity activeOpacity={1}>
+            <View className="rounded-t-3xl p-6 pb-10" style={{ backgroundColor: COLORS.card }}>
+              <Text
+                style={{ color: COLORS.text.primary }}
+                className="text-xl font-bold mb-4 text-center"
+              >
+                Scan Receipt
+              </Text>
+              <TouchableOpacity
+                className="flex-row items-center p-4 rounded-xl mb-3"
+                style={{ backgroundColor: COLORS.surface }}
+                onPress={() => handleScanReceipt(true)}
+              >
+                <View
+                  className="w-12 h-12 rounded-full items-center justify-center mr-4"
+                  style={{ backgroundColor: COLORS.pastel.purple + '20' }}
+                >
+                  <Camera size={24} color={COLORS.pastel.purple} />
+                </View>
+                <View className="flex-1">
+                  <Text style={{ color: COLORS.text.primary }} className="text-base font-semibold">
+                    Take Photo
+                  </Text>
+                  <Text style={{ color: COLORS.text.muted }} className="text-sm">
+                    Capture receipt with camera
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="flex-row items-center p-4 rounded-xl"
+                style={{ backgroundColor: COLORS.surface }}
+                onPress={() => handleScanReceipt(false)}
+              >
+                <View
+                  className="w-12 h-12 rounded-full items-center justify-center mr-4"
+                  style={{ backgroundColor: COLORS.pastel.blue + '20' }}
+                >
+                  <ImageIcon size={24} color={COLORS.pastel.blue} />
+                </View>
+                <View className="flex-1">
+                  <Text style={{ color: COLORS.text.primary }} className="text-base font-semibold">
+                    Choose from Gallery
+                  </Text>
+                  <Text style={{ color: COLORS.text.muted }} className="text-sm">
+                    Select existing photo
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Scanning Overlay */}
+      {scanning && (
+        <View
+          className="absolute inset-0 items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+        >
+          <View className="rounded-2xl p-6 items-center" style={{ backgroundColor: COLORS.card }}>
+            <ActivityIndicator size="large" color={COLORS.pastel.purple} />
+            <Text style={{ color: COLORS.text.primary }} className="text-base font-semibold mt-4">
+              Scanning Receipt...
+            </Text>
+            <Text style={{ color: COLORS.text.muted }} className="text-sm mt-1">
+              AI is analyzing your receipt
+            </Text>
+          </View>
+        </View>
+      )}
 
       {/* Initialize Balance Modal */}
       <Modal

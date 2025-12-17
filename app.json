@@ -28,7 +28,14 @@
     },
     "plugins": [
       "expo-asset",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to scan receipts.",
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos to select receipt images."
+        }
+      ]
     ]
   }
 }
