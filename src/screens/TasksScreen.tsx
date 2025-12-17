@@ -14,7 +14,7 @@ import {
   RefreshControl,
   ScrollView,
 } from 'react-native';
-import { Circle, X, Sparkles, RotateCcw, CheckCircle2, Clock } from 'lucide-react-native';
+import { Circle, X, Sparkles, RotateCcw, CheckCircle2, Clock, Trash2 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
@@ -25,6 +25,7 @@ import {
   updateTaskSortOrder,
   resetTaskSortOrder,
   hasCustomSortOrder,
+  deleteAllCompletedTasks,
 } from '../services/taskService';
 import { prioritizeTasks } from '../services/aiService';
 import { useTheme } from '../contexts/ThemeContext';
@@ -216,6 +217,33 @@ export default function TasksScreen(): React.JSX.Element {
       console.error('Error deleting task:', error);
       Alert.alert('Error', 'Failed to delete task. Please try again.');
     }
+  };
+
+  const deleteAllCompleted = async (): Promise<void> => {
+    Alert.alert(
+      'Delete All Completed Tasks',
+      'Are you sure you want to delete all completed tasks? This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete All',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const success = await deleteAllCompletedTasks();
+              if (success) {
+                setTasks(tasks.filter(task => !task.completed));
+              } else {
+                Alert.alert('Error', 'Failed to delete tasks. Please try again.');
+              }
+            } catch (error) {
+              console.error('Error deleting all completed tasks:', error);
+              Alert.alert('Error', 'Failed to delete tasks. Please try again.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handlePrioritize = useCallback(async (): Promise<void> => {
@@ -540,6 +568,18 @@ export default function TasksScreen(): React.JSX.Element {
             </View>
           }
         />
+      )}
+
+      {/* Delete All Completed Button - Bottom Left */}
+      {filter === 'completed' && completedCount > 0 && (
+        <TouchableOpacity
+          className="absolute bottom-5 left-5 w-14 h-14 rounded-full items-center justify-center shadow-lg"
+          style={{ backgroundColor: COLORS.pastel.red }}
+          onPress={deleteAllCompleted}
+          activeOpacity={0.8}
+        >
+          <Trash2 size={24} color={COLORS.background} />
+        </TouchableOpacity>
       )}
 
       <FloatingActionButton onPress={() => setModalVisible(true)} />

@@ -347,6 +347,233 @@ export type Database = {
           },
         ];
       };
+      split_bills: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          description: string | null;
+          subtotal: number;
+          tax_amount: number;
+          service_charge: number;
+          tip_amount: number;
+          total_amount: number;
+          receipt_image_url: string | null;
+          date: string;
+          status: 'active' | 'settled' | 'archived';
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          description?: string | null;
+          subtotal: number;
+          tax_amount?: number;
+          service_charge?: number;
+          tip_amount?: number;
+          total_amount: number;
+          receipt_image_url?: string | null;
+          date?: string;
+          status?: 'active' | 'settled' | 'archived';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          description?: string | null;
+          subtotal?: number;
+          tax_amount?: number;
+          service_charge?: number;
+          tip_amount?: number;
+          total_amount?: number;
+          receipt_image_url?: string | null;
+          date?: string;
+          status?: 'active' | 'settled' | 'archived';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'split_bills_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      bill_items: {
+        Row: {
+          id: string;
+          bill_id: string;
+          name: string;
+          quantity: number;
+          unit_price: number;
+          total_price: number;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          bill_id: string;
+          name: string;
+          quantity?: number;
+          unit_price: number;
+          total_price: number;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          bill_id?: string;
+          name?: string;
+          quantity?: number;
+          unit_price?: number;
+          total_price?: number;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'bill_items_bill_id_fkey';
+            columns: ['bill_id'];
+            isOneToOne: false;
+            referencedRelation: 'split_bills';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      bill_participants: {
+        Row: {
+          id: string;
+          bill_id: string;
+          name: string;
+          subtotal: number;
+          tax_share: number;
+          service_share: number;
+          tip_share: number;
+          total_amount: number;
+          is_settled: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          bill_id: string;
+          name: string;
+          subtotal?: number;
+          tax_share?: number;
+          service_share?: number;
+          tip_share?: number;
+          total_amount?: number;
+          is_settled?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          bill_id?: string;
+          name?: string;
+          subtotal?: number;
+          tax_share?: number;
+          service_share?: number;
+          tip_share?: number;
+          total_amount?: number;
+          is_settled?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'bill_participants_bill_id_fkey';
+            columns: ['bill_id'];
+            isOneToOne: false;
+            referencedRelation: 'split_bills';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      bill_item_assignments: {
+        Row: {
+          id: string;
+          item_id: string;
+          participant_id: string;
+          share_percentage: number;
+          share_amount: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          item_id: string;
+          participant_id: string;
+          share_percentage?: number;
+          share_amount: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          item_id?: string;
+          participant_id?: string;
+          share_percentage?: number;
+          share_amount?: number;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'bill_item_assignments_item_id_fkey';
+            columns: ['item_id'];
+            isOneToOne: false;
+            referencedRelation: 'bill_items';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'bill_item_assignments_participant_id_fkey';
+            columns: ['participant_id'];
+            isOneToOne: false;
+            referencedRelation: 'bill_participants';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      recent_participants: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          usage_count: number;
+          last_used_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          usage_count?: number;
+          last_used_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          usage_count?: number;
+          last_used_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'recent_participants_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;

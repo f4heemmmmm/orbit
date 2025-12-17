@@ -296,3 +296,30 @@ export async function hasCustomSortOrder(): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Delete all completed tasks for the current user
+ */
+export async function deleteAllCompletedTasks(): Promise<boolean> {
+  try {
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
+
+    const { error } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('user_id', userId)
+      .eq('completed', true);
+
+    if (error) {
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error deleting all completed tasks:', error);
+    return false;
+  }
+}

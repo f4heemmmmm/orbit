@@ -26,6 +26,7 @@ import PrayerTimesScreen from './src/screens/PrayerTimesScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import CitySearchScreen from './src/screens/CitySearchScreen';
 import CalculationMethodScreen from './src/screens/CalculationMethodScreen';
+import ViewSplitBillScreen from './src/screens/ViewSplitBillScreen';
 import AuthScreen from './src/screens/AuthScreen';
 import { getCurrentUser } from './src/services/authService';
 import { ThemeProvider, useTheme } from './src/contexts/ThemeContext';
@@ -46,6 +47,7 @@ type RootStackParamList = {
   MainTabs: undefined;
   ViewTransaction: { transaction: FinancialsStackParamList['ViewTransaction']['transaction'] };
   ViewTask: { task: Task; onToggle?: (id: string) => void };
+  ViewSplitBill: { billId: string };
   CitySearch: { onSelect?: (city: string, country: string) => void } | undefined;
   CalculationMethod: { onSelect?: (method: number) => void } | undefined;
 };
@@ -172,6 +174,11 @@ function AppContent(): React.JSX.Element {
         <RootStack.Screen
           name="ViewTask"
           component={ViewTaskScreen}
+          options={{ animation: 'slide_from_right' }}
+        />
+        <RootStack.Screen
+          name="ViewSplitBill"
+          component={ViewSplitBillScreen}
           options={{ animation: 'slide_from_right' }}
         />
         <RootStack.Screen

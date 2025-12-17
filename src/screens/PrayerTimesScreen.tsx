@@ -311,7 +311,7 @@ export default function PrayerTimesScreen(): React.JSX.Element {
               className={`flex-row items-center p-4 ${!isLast ? 'border-b' : ''}`}
               style={{
                 borderBottomColor: COLORS.surface,
-                opacity: prayer.hasPassed && !prayer.isNext ? 0.5 : 1,
+                opacity: prayer.hasPassed && !prayer.isNext ? 0.5 : 1, 
               }}
             >
               {/* Icon */}
