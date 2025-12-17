@@ -14,12 +14,12 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Search, MapPin, X, ChevronLeft } from 'lucide-react-native';
+import { Search, MapPin, X } from 'lucide-react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { getThemeColors } from '../constants/theme';
 import { savePrayerSettings, getPrayerSettings } from '../services/prayerService';
+import ScreenLayout from '../components/ScreenLayout';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 // Popular cities for quick selection
@@ -165,25 +165,6 @@ export default function CitySearchScreen(): React.JSX.Element {
   }, [searchQuery, handleSelectCity, validateCity]);
 
   const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.surface,
-    },
-    backButton: {
-      marginRight: 12,
-    },
-    title: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: colors.text.primary,
-    },
     searchContainer: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -273,15 +254,12 @@ export default function CitySearchScreen(): React.JSX.Element {
   });
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <ChevronLeft size={24} color={colors.text.primary} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Select City</Text>
-      </View>
-
+    <ScreenLayout
+      headerConfig={{
+        title: 'Select City',
+        onBackPress: () => navigation.goBack(),
+      }}
+    >
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <Search size={20} color={colors.text.muted} style={styles.searchIcon} />
@@ -356,6 +334,6 @@ export default function CitySearchScreen(): React.JSX.Element {
           <Text style={styles.overlayText}>Validating city...</Text>
         </View>
       )}
-    </SafeAreaView>
+    </ScreenLayout>
   );
 }

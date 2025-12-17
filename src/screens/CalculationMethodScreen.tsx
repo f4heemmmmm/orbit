@@ -5,13 +5,13 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ChevronLeft, Check } from 'lucide-react-native';
+import { Check } from 'lucide-react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { getThemeColors } from '../constants/theme';
 import { savePrayerSettings, getPrayerSettings } from '../services/prayerService';
 import { CALCULATION_METHODS } from '../types';
+import ScreenLayout from '../components/ScreenLayout';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 type RouteParams = {
@@ -61,25 +61,6 @@ export default function CalculationMethodScreen(): React.JSX.Element {
   );
 
   const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.surface,
-    },
-    backButton: {
-      marginRight: 12,
-    },
-    title: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: colors.text.primary,
-    },
     description: {
       fontSize: 14,
       color: colors.text.muted,
@@ -115,15 +96,12 @@ export default function CalculationMethodScreen(): React.JSX.Element {
   });
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <ChevronLeft size={24} color={colors.text.primary} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Calculation Method</Text>
-      </View>
-
+    <ScreenLayout
+      headerConfig={{
+        title: 'Calculation Method',
+        onBackPress: () => navigation.goBack(),
+      }}
+    >
       {/* Description */}
       <Text style={styles.description}>
         Different Islamic organizations use slightly different methods to calculate prayer times.
@@ -149,6 +127,6 @@ export default function CalculationMethodScreen(): React.JSX.Element {
           </TouchableOpacity>
         )}
       />
-    </SafeAreaView>
+    </ScreenLayout>
   );
 }

@@ -48,7 +48,6 @@ export async function signUp(email: string, password: string, fullName?: string)
 
     return { data, error: null };
   } catch (error) {
-    console.error('Sign up error:', error);
     return { data: null, error };
   }
 }
@@ -68,7 +67,6 @@ export async function signIn(email: string, password: string) {
     }
     return { data, error: null };
   } catch (error) {
-    console.error('Sign in error:', error);
     return { data: null, error };
   }
 }
@@ -84,7 +82,6 @@ export async function signOut() {
     }
     return { error: null };
   } catch (error) {
-    console.error('Sign out error:', error);
     return { error };
   }
 }
@@ -122,8 +119,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
       email: session.user.email ?? '',
       profile,
     };
-  } catch (error) {
-    console.error('Get current user error:', error);
+  } catch {
     return null;
   }
 }
@@ -137,8 +133,7 @@ export async function getCurrentUserId(): Promise<string | null> {
       data: { session },
     } = await supabase.auth.getSession();
     return session?.user?.id || null;
-  } catch (error) {
-    console.error('Get current user ID error:', error);
+  } catch {
     return null;
   }
 }
@@ -165,7 +160,6 @@ export async function updateProfile(updates: { full_name?: string; avatar_url?: 
     }
     return { data, error: null };
   } catch (error) {
-    console.error('Update profile error:', error);
     return { data: null, error };
   }
 }
@@ -195,7 +189,6 @@ export async function deleteAccount() {
 
     return { error: null };
   } catch (error) {
-    console.error('Delete account error:', error);
     return { error };
   }
 }

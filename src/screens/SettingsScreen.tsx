@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
   ScrollView,
   Switch,
-  SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -21,6 +20,7 @@ import {
   Calculator,
   ChevronRight,
 } from 'lucide-react-native';
+import ScreenLayout from '../components/ScreenLayout';
 import { signOut, deleteAccount, getCurrentUser } from '../services/authService';
 import {
   syncPrayerCalendar,
@@ -243,7 +243,7 @@ export default function SettingsScreen({ onSignOut }: SettingsScreenProps): Reac
   };
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: COLORS.background }}>
+    <ScreenLayout safeAreaEdges={['top']}>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* User Info Section */}
         <View className="p-4">
@@ -457,6 +457,6 @@ export default function SettingsScreen({ onSignOut }: SettingsScreenProps): Reac
           </View>
         </View>
       )}
-    </SafeAreaView>
+    </ScreenLayout>
   );
 }
