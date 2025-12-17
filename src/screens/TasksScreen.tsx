@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback } from 'react';
 import {
   type ListRenderItem,
   View,
@@ -218,7 +218,7 @@ export default function TasksScreen(): React.JSX.Element {
     }
   };
 
-  const handlePrioritize = async (): Promise<void> => {
+  const handlePrioritize = useCallback(async (): Promise<void> => {
     const pendingTasks = tasks.filter(t => !t.completed);
     if (pendingTasks.length < 2) {
       Alert.alert('Not Enough Tasks', 'You need at least 2 pending tasks to prioritize.');
@@ -279,9 +279,9 @@ export default function TasksScreen(): React.JSX.Element {
         },
       ]
     );
-  };
+  }, [tasks]);
 
-  const handleRecover = async (): Promise<void> => {
+  const handleRecover = useCallback(async (): Promise<void> => {
     Alert.alert(
       'Restore Default Order',
       'This will reset all tasks to their original order (by creation date). Continue?',
@@ -315,7 +315,62 @@ export default function TasksScreen(): React.JSX.Element {
         },
       ]
     );
-  };
+  }, []);
+
+  // Configure header with Prioritize button
+  useLayoutEffect(() => {
+    const pendingTasks = tasks.filter(t => !t.completed);
+    const canPrioritize = pendingTasks.length >= 2 && !prioritizing && !loading;
+
+    navigation.setOptions({
+      headerRight: () => (
+        <View className="flex-row items-center mr-2">
+          {hasSortOrder && (
+            <TouchableOpacity
+              className="p-2 mr-1"
+              onPress={handleRecover}
+              disabled={prioritizing}
+              style={{ opacity: prioritizing ? 0.5 : 1 }}
+            >
+              <RotateCcw size={20} color={COLORS.text.secondary} />
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            className="flex-row items-center py-1.5 px-3 rounded-full"
+            style={{
+              backgroundColor: canPrioritize ? COLORS.pastel.purple : COLORS.surface,
+              opacity: canPrioritize ? 1 : 0.5,
+            }}
+            onPress={handlePrioritize}
+            disabled={!canPrioritize}
+          >
+            {prioritizing ? (
+              <ActivityIndicator size="small" color={COLORS.background} />
+            ) : (
+              <>
+                <Sparkles size={14} color={canPrioritize ? COLORS.background : COLORS.text.muted} />
+                <Text
+                  className="text-xs font-semibold ml-1"
+                  style={{ color: canPrioritize ? COLORS.background : COLORS.text.muted }}
+                >
+                  Prioritize
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, [
+    navigation,
+    tasks,
+    prioritizing,
+    loading,
+    hasSortOrder,
+    COLORS,
+    handlePrioritize,
+    handleRecover,
+  ]);
 
   const filteredTasks = tasks.filter(task => {
     if (filter === 'completed') {
@@ -447,46 +502,6 @@ export default function TasksScreen(): React.JSX.Element {
             </Text>
           </TouchableOpacity>
         ))}
-      </View>
-
-      {/* AI Prioritization Buttons */}
-      <View className="flex-row px-4 mb-3 gap-2">
-        <TouchableOpacity
-          className="flex-1 py-2.5 rounded-xl flex-row items-center justify-center"
-          style={{
-            backgroundColor: COLORS.pastel.purple,
-            opacity: prioritizing ? 0.7 : 1,
-          }}
-          onPress={handlePrioritize}
-          disabled={prioritizing}
-        >
-          {prioritizing ? (
-            <ActivityIndicator size="small" color={COLORS.background} />
-          ) : (
-            <>
-              <Sparkles size={16} color={COLORS.background} />
-              <Text className="text-sm font-semibold ml-1.5" style={{ color: COLORS.background }}>
-                Prioritize
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
-        {hasSortOrder && (
-          <TouchableOpacity
-            className="py-2.5 px-4 rounded-xl flex-row items-center justify-center"
-            style={{
-              backgroundColor: COLORS.card,
-              opacity: prioritizing ? 0.7 : 1,
-            }}
-            onPress={handleRecover}
-            disabled={prioritizing}
-          >
-            <RotateCcw size={16} color={COLORS.text.secondary} />
-            <Text className="text-sm font-medium ml-1.5" style={{ color: COLORS.text.secondary }}>
-              Reset
-            </Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       {/* Tasks List */}
