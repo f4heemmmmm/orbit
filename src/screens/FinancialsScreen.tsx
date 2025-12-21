@@ -1,118 +1,91 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-  Modal,
-} from 'react-native';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import {
-  X,
-  TrendingUp,
-  TrendingDown,
-  Camera,
-  Image as ImageIcon,
-  Wallet,
-  Plus,
-  Users,
-} from 'lucide-react-native';
-import CurrencyInput from 'react-native-currency-input';
-import AddTransactionModal, {
-  type TransactionInitialData,
-} from '../components/AddTransactionModal';
+import { Camera, Wallet, Plus, Users } from 'lucide-react-native';
+import AddTransactionModal from '../components/AddTransactionModal';
 import SwipeableTransactionItem from '../components/SwipeableTransactionItem';
 import SplitBillWizard from '../components/splitBill/SplitBillWizard';
 import SplitBillListItem from '../components/splitBill/SplitBillListItem';
-import type { Transaction, TransactionData } from '../types';
+import {
+  BalanceCard,
+  ScanOptionsModal,
+  ScanningOverlay,
+  InitializeBalanceModal,
+} from '../components/financials';
+import type { Transaction } from '../types';
 import type { SplitBill } from '../types/splitBill';
+import type { FinancialsStackParamList } from '../navigation/types';
 import { useTheme } from '../contexts/ThemeContext';
-import { getThemeColors, FONT_SIZES } from '../constants/theme';
+import { getThemeColors } from '../constants/theme';
 import { formatRelativeDate } from '../utils/dateUtils';
 import {
-  getTransactions,
-  createTransaction,
-  deleteTransaction,
-  updateTransaction,
-} from '../services/transactionService';
-import { scanReceipt } from '../services/receiptService';
+  groupTransactionsByDate,
+  sortDatesDescending,
+  calculateFinancialSummary,
+} from '../utils/transactionUtils';
+import { useTransactions, useReceiptScanner } from '../hooks';
 import { getSplitBills } from '../services/splitBillService';
 
-type RootStackParamList = {
-  MainTabs: undefined;
-  ViewTransaction: {
-    transaction: Transaction;
-    onUpdate?: (id: string, data: TransactionData) => void;
-  };
-  ViewSplitBill: {
-    billId: string;
-  };
-};
-
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type NavigationProp = NativeStackNavigationProp<FinancialsStackParamList>;
 
 type TabType = 'transactions' | 'splitBill';
 
-const tabs: TabType[] = ['transactions', 'splitBill'];
+const TABS: TabType[] = ['transactions', 'splitBill'];
 
-const getTabLabel = (tab: TabType): string => {
-  return tab === 'transactions' ? 'Transactions' : 'Split Bill';
+const TAB_LABELS: Record<TabType, string> = {
+  transactions: 'Transactions',
+  splitBill: 'Split Bill',
 };
 
 export default function FinancialsScreen(): React.JSX.Element {
   const navigation = useNavigation<NavigationProp>();
   const { themeMode } = useTheme();
   const COLORS = getThemeColors(themeMode);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  // Tab state
   const [activeTab, setActiveTab] = useState<TabType>('transactions');
+
+  // Modal states
   const [modalVisible, setModalVisible] = useState(false);
   const [initModalVisible, setInitModalVisible] = useState(false);
-  const [initAmount, setInitAmount] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [scanOptionsVisible, setScanOptionsVisible] = useState(false);
-  const [scanning, setScanning] = useState(false);
-  const [initialTransactionData, setInitialTransactionData] = useState<
-    TransactionInitialData | undefined
-  >(undefined);
 
   // Split bill state
   const [splitBills, setSplitBills] = useState<SplitBill[]>([]);
   const [splitBillsLoading, setSplitBillsLoading] = useState(true);
   const [wizardVisible, setWizardVisible] = useState(false);
 
-  // Fetch transactions on mount
-  useEffect(() => {
-    loadTransactions();
-  }, []);
+  // Hooks
+  const {
+    transactions,
+    loading,
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+    initializeBalance,
+  } = useTransactions();
 
-  const loadTransactions = async (): Promise<void> => {
-    try {
-      setLoading(true);
-      const data = await getTransactions();
+  const {
+    scanning,
+    scanOptionsVisible,
+    initialTransactionData,
+    openScanOptions,
+    closeScanOptions,
+    handleScanReceipt,
+    clearInitialData,
+  } = useReceiptScanner();
 
-      // Convert database format to app format
-      const formattedTransactions: Transaction[] = data.map(t => ({
-        id: t.id,
-        title: t.title,
-        description: t.description || '',
-        amount: Number(t.amount),
-        type: t.type,
-        category: t.category,
-        date: new Date(t.date).toISOString().split('T')[0],
-      }));
+  // Computed values
+  const financialSummary = useMemo(() => calculateFinancialSummary(transactions), [transactions]);
 
-      setTransactions(formattedTransactions);
-    } catch (error) {
-      console.error('Error loading transactions:', error);
-      Alert.alert('Error', 'Failed to load transactions. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const groupedTransactions = useMemo(() => groupTransactionsByDate(transactions), [transactions]);
 
+  const sortedDates = useMemo(
+    () => sortDatesDescending(Object.keys(groupedTransactions)),
+    [groupedTransactions]
+  );
+
+  // Split bill handlers
   const loadSplitBills = useCallback(async (): Promise<void> => {
     try {
       setSplitBillsLoading(true);
@@ -125,7 +98,6 @@ export default function FinancialsScreen(): React.JSX.Element {
     }
   }, []);
 
-  // Load split bills when the split bill tab is active
   useFocusEffect(
     useCallback(() => {
       if (activeTab === 'splitBill') {
@@ -134,205 +106,21 @@ export default function FinancialsScreen(): React.JSX.Element {
     }, [activeTab, loadSplitBills])
   );
 
-  // Also load when switching to split bill tab
   useEffect(() => {
     if (activeTab === 'splitBill') {
       loadSplitBills();
     }
   }, [activeTab, loadSplitBills]);
 
-  const totalIncome = transactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const totalExpenses = transactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const balance = totalIncome - totalExpenses;
-
-  const handleInitializeBalance = async (): Promise<void> => {
-    if (!initAmount || initAmount <= 0) {
-      Alert.alert('Invalid Amount', 'Please enter a valid positive amount.');
-      return;
-    }
-
-    try {
-      const newTransaction = await createTransaction({
-        title: 'Initialization',
-        description: 'Initial balance setup',
-        amount: initAmount,
-        type: 'income',
-        category: 'Other',
-        date: new Date().toISOString(),
-      });
-
-      if (newTransaction) {
-        const formattedTransaction: Transaction = {
-          id: newTransaction.id,
-          title: newTransaction.title,
-          description: newTransaction.description || '',
-          amount: Number(newTransaction.amount),
-          type: newTransaction.type,
-          category: newTransaction.category,
-          date: new Date(newTransaction.date).toISOString().split('T')[0],
-        };
-        setTransactions([formattedTransaction, ...transactions]);
-        setInitModalVisible(false);
-        setInitAmount(null);
-      } else {
-        Alert.alert('Error', 'Failed to initialize balance. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error initializing balance:', error);
-      Alert.alert('Error', 'Failed to initialize balance. Please try again.');
-    }
-  };
-
-  const handleAddTransaction = async (data: TransactionData): Promise<void> => {
-    try {
-      const newTransaction = await createTransaction({
-        title: data.title,
-        description: data.description,
-        amount: data.amount,
-        type: data.type,
-        category: data.category,
-        date: data.date.toISOString(),
-      });
-
-      if (newTransaction) {
-        // Add to local state immediately for better UX
-        const formattedTransaction: Transaction = {
-          id: newTransaction.id,
-          title: newTransaction.title,
-          description: newTransaction.description || '',
-          amount: Number(newTransaction.amount),
-          type: newTransaction.type,
-          category: newTransaction.category,
-          date: new Date(newTransaction.date).toISOString().split('T')[0],
-        };
-        setTransactions([formattedTransaction, ...transactions]);
-        setModalVisible(false);
-      } else {
-        Alert.alert('Error', 'Failed to add transaction. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error adding transaction:', error);
-      Alert.alert('Error', 'Failed to add transaction. Please try again.');
-    }
-  };
-
-  const handleUpdateTransaction = async (id: string, data: TransactionData): Promise<void> => {
-    try {
-      const updatedTransaction = await updateTransaction(id, {
-        title: data.title,
-        description: data.description,
-        amount: data.amount,
-        type: data.type,
-        category: data.category,
-        date: data.date.toISOString(),
-      });
-
-      if (updatedTransaction) {
-        // Update local state immediately for better UX
-        const formattedTransaction: Transaction = {
-          id: updatedTransaction.id,
-          title: updatedTransaction.title,
-          description: updatedTransaction.description || '',
-          amount: Number(updatedTransaction.amount),
-          type: updatedTransaction.type,
-          category: updatedTransaction.category,
-          date: new Date(updatedTransaction.date).toISOString().split('T')[0],
-        };
-        setTransactions(transactions.map(t => (t.id === id ? formattedTransaction : t)));
-      } else {
-        Alert.alert('Error', 'Failed to update transaction. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error updating transaction:', error);
-      Alert.alert('Error', 'Failed to update transaction. Please try again.');
-    }
-  };
-
-  const handleDeleteTransaction = async (id: string): Promise<void> => {
-    Alert.alert('Delete Transaction', 'Are you sure you want to delete this transaction?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            const success = await deleteTransaction(id);
-            if (success) {
-              setTransactions(transactions.filter(t => t.id !== id));
-            } else {
-              Alert.alert('Error', 'Failed to delete transaction. Please try again.');
-            }
-          } catch (error) {
-            console.error('Error deleting transaction:', error);
-            Alert.alert('Error', 'Failed to delete transaction. Please try again.');
-          }
-        },
-      },
-    ]);
-  };
-
-  const handleScanReceipt = async (useCamera: boolean): Promise<void> => {
-    setScanOptionsVisible(false);
-    setScanning(true);
-
-    try {
-      const result = await scanReceipt(useCamera);
-
-      if (!result.success) {
-        setScanning(false);
-        if (result.error) {
-          Alert.alert('Scan Failed', result.error);
-        }
-        return;
-      }
-
-      if (result.data) {
-        // Pre-fill the transaction modal with scanned data
-        setInitialTransactionData({
-          title: result.data.title,
-          description: result.data.description,
-          amount: result.data.amount,
-          type: result.data.type,
-          category: result.data.category,
-        });
-
-        setScanning(false);
-
-        // Show confidence level to user
-        const confidenceMessage =
-          result.data.confidence === 'high'
-            ? 'Receipt scanned successfully!'
-            : result.data.confidence === 'medium'
-              ? 'Receipt scanned. Please verify the details.'
-              : 'Some details may be inaccurate. Please review carefully.';
-
-        Alert.alert('Receipt Scanned', confidenceMessage, [
-          {
-            text: 'Review & Add',
-            onPress: () => setModalVisible(true),
-          },
-        ]);
-      }
-    } catch {
-      setScanning(false);
-      Alert.alert('Error', 'An unexpected error occurred while scanning the receipt.');
-    }
-  };
-
+  // Modal handlers
   const handleOpenAddModal = (): void => {
-    setInitialTransactionData(undefined);
+    clearInitialData();
     setModalVisible(true);
   };
 
   const handleCloseAddModal = (): void => {
     setModalVisible(false);
-    setInitialTransactionData(undefined);
+    clearInitialData();
   };
 
   const handleWizardClose = (saved: boolean): void => {
@@ -342,138 +130,38 @@ export default function FinancialsScreen(): React.JSX.Element {
     }
   };
 
-  // Group transactions by date
-  const groupedTransactions = transactions.reduce<Record<string, Transaction[]>>(
-    (groups, transaction) => {
-      if (!groups[transaction.date]) {
-        groups[transaction.date] = [];
-      }
-      groups[transaction.date].push(transaction);
-      return groups;
-    },
-    {}
-  );
-
-  // Sort dates in descending order (most recent first)
-  const sortedDates = Object.keys(groupedTransactions).sort((a, b) => b.localeCompare(a));
-
-  const renderTransaction = (item: Transaction): React.JSX.Element => {
-    return (
-      <SwipeableTransactionItem
-        key={item.id}
-        item={item}
-        onPress={() =>
-          navigation.navigate('ViewTransaction', {
-            transaction: item,
-            onUpdate: handleUpdateTransaction,
-          })
-        }
-        onDelete={() => handleDeleteTransaction(item.id)}
-      />
-    );
+  const handleInitializeBalance = async (amount: number): Promise<boolean> => {
+    return initializeBalance(amount);
   };
 
-  // Calculate ratio for visual bar
-  const totalFlow = totalIncome + totalExpenses;
-  const incomeRatio = totalFlow > 0 ? (totalIncome / totalFlow) * 100 : 50;
+  // Render transaction item
+  const renderTransaction = (item: Transaction): React.JSX.Element => (
+    <SwipeableTransactionItem
+      key={item.id}
+      item={item}
+      onPress={() =>
+        navigation.navigate('ViewTransaction', {
+          transaction: item,
+          onUpdate: updateTransaction,
+        })
+      }
+      onDelete={() => deleteTransaction(item.id)}
+    />
+  );
 
   return (
     <View className="flex-1" style={{ backgroundColor: COLORS.background }}>
-      {/* Compact Stats Bar */}
-      <View className="p-4 pb-2">
-        <TouchableOpacity
-          className="rounded-2xl p-4"
-          style={{ backgroundColor: COLORS.card }}
-          onPress={() => {
-            if (transactions.length === 0) {
-              setInitModalVisible(true);
-            }
-          }}
-          activeOpacity={transactions.length === 0 ? 0.7 : 1}
-        >
-          {/* Balance Header */}
-          <View className="mb-4">
-            <Text style={{ color: COLORS.text.muted }} className="text-xs mb-1">
-              Total Balance
-            </Text>
-            <Text
-              style={{ color: balance >= 0 ? COLORS.pastel.green : COLORS.pastel.red }}
-              className="text-3xl font-bold"
-            >
-              ${Math.abs(balance).toFixed(2)}
-            </Text>
-          </View>
-
-          {transactions.length === 0 ? (
-            <Text style={{ color: COLORS.text.muted }} className="text-xs text-center">
-              Tap to set initial balance
-            </Text>
-          ) : (
-            <>
-              {/* Income vs Expense Visual Bar */}
-              <View className="flex-row h-2 rounded-full overflow-hidden mb-4">
-                <View
-                  className="h-full"
-                  style={{
-                    backgroundColor: COLORS.pastel.green,
-                    width: `${incomeRatio}%`,
-                  }}
-                />
-                <View
-                  className="h-full"
-                  style={{
-                    backgroundColor: COLORS.pastel.red,
-                    width: `${100 - incomeRatio}%`,
-                  }}
-                />
-              </View>
-
-              {/* Income & Expense Row */}
-              <View className="flex-row items-center justify-between">
-                {/* Income */}
-                <View className="flex-row items-center flex-1">
-                  <View
-                    className="w-9 h-9 rounded-full items-center justify-center"
-                    style={{ backgroundColor: COLORS.pastel.green + '20' }}
-                  >
-                    <TrendingUp size={18} color={COLORS.pastel.green} />
-                  </View>
-                  <View className="ml-2">
-                    <Text style={{ color: COLORS.pastel.green }} className="text-lg font-bold">
-                      ${totalIncome.toFixed(2)}
-                    </Text>
-                    <Text style={{ color: COLORS.text.muted }} className="text-xs">
-                      Income
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Expenses */}
-                <View className="flex-row items-center flex-1 justify-end">
-                  <View className="mr-2 items-end">
-                    <Text style={{ color: COLORS.pastel.red }} className="text-lg font-bold">
-                      ${totalExpenses.toFixed(2)}
-                    </Text>
-                    <Text style={{ color: COLORS.text.muted }} className="text-xs">
-                      Expenses
-                    </Text>
-                  </View>
-                  <View
-                    className="w-9 h-9 rounded-full items-center justify-center"
-                    style={{ backgroundColor: COLORS.pastel.red + '20' }}
-                  >
-                    <TrendingDown size={18} color={COLORS.pastel.red} />
-                  </View>
-                </View>
-              </View>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
+      {/* Balance Card */}
+      <BalanceCard
+        summary={financialSummary}
+        hasTransactions={transactions.length > 0}
+        onInitializePress={() => setInitModalVisible(true)}
+        colors={COLORS}
+      />
 
       {/* Tab Selector */}
       <View className="flex-row px-4 mb-3" style={{ gap: 8 }}>
-        {tabs.map(tab => (
+        {TABS.map(tab => (
           <TouchableOpacity
             key={tab}
             className="flex-1 py-2 rounded-full"
@@ -484,7 +172,7 @@ export default function FinancialsScreen(): React.JSX.Element {
               className="text-sm font-medium text-center"
               style={{ color: activeTab === tab ? COLORS.background : COLORS.text.secondary }}
             >
-              {getTabLabel(tab)}
+              {TAB_LABELS[tab]}
             </Text>
           </TouchableOpacity>
         ))}
@@ -529,7 +217,6 @@ export default function FinancialsScreen(): React.JSX.Element {
           <View className="h-20" />
         </ScrollView>
       ) : (
-        /* Split Bill Tab */
         <ScrollView
           className="flex-1 px-4"
           showsVerticalScrollIndicator={false}
@@ -570,21 +257,18 @@ export default function FinancialsScreen(): React.JSX.Element {
         </ScrollView>
       )}
 
-      {/* Action Buttons Container - Only show on transactions tab */}
+      {/* Action Buttons - Transactions Tab */}
       {activeTab === 'transactions' && (
         <View className="absolute bottom-5 right-5 flex-row items-center" style={{ gap: 12 }}>
-          {/* Scan Receipt Button */}
           <TouchableOpacity
             className="w-14 h-14 rounded-full items-center justify-center shadow-lg"
             style={{ backgroundColor: COLORS.pastel.purple }}
-            onPress={() => setScanOptionsVisible(true)}
+            onPress={openScanOptions}
             disabled={scanning}
             activeOpacity={0.8}
           >
             <Camera size={26} color={COLORS.background} />
           </TouchableOpacity>
-
-          {/* Add Transaction Button */}
           <TouchableOpacity
             className="w-14 h-14 rounded-full items-center justify-center shadow-lg"
             style={{ backgroundColor: COLORS.pastel.blue }}
@@ -596,7 +280,7 @@ export default function FinancialsScreen(): React.JSX.Element {
         </View>
       )}
 
-      {/* Split Bill FAB - Only show on split bill tab */}
+      {/* Action Button - Split Bill Tab */}
       {activeTab === 'splitBill' && (
         <View className="absolute bottom-5 right-5">
           <TouchableOpacity
@@ -610,182 +294,32 @@ export default function FinancialsScreen(): React.JSX.Element {
         </View>
       )}
 
+      {/* Modals */}
       <AddTransactionModal
         visible={modalVisible}
         onClose={handleCloseAddModal}
-        onAdd={handleAddTransaction}
+        onAdd={addTransaction}
         initialData={initialTransactionData}
       />
 
-      {/* Split Bill Wizard */}
       <SplitBillWizard visible={wizardVisible} onClose={handleWizardClose} />
 
-      {/* Scan Options Modal */}
-      <Modal
+      <ScanOptionsModal
         visible={scanOptionsVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setScanOptionsVisible(false)}
-      >
-        <TouchableOpacity
-          className="flex-1 justify-end"
-          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
-          activeOpacity={1}
-          onPress={() => setScanOptionsVisible(false)}
-        >
-          <TouchableOpacity activeOpacity={1}>
-            <View className="rounded-t-3xl p-6 pb-10" style={{ backgroundColor: COLORS.card }}>
-              <Text
-                style={{ color: COLORS.text.primary }}
-                className="text-xl font-bold mb-4 text-center"
-              >
-                Scan Receipt
-              </Text>
-              <TouchableOpacity
-                className="flex-row items-center p-4 rounded-xl mb-3"
-                style={{ backgroundColor: COLORS.surface }}
-                onPress={() => handleScanReceipt(true)}
-              >
-                <View
-                  className="w-12 h-12 rounded-full items-center justify-center mr-4"
-                  style={{ backgroundColor: COLORS.pastel.purple + '20' }}
-                >
-                  <Camera size={24} color={COLORS.pastel.purple} />
-                </View>
-                <View className="flex-1">
-                  <Text style={{ color: COLORS.text.primary }} className="text-base font-semibold">
-                    Take Photo
-                  </Text>
-                  <Text style={{ color: COLORS.text.muted }} className="text-sm">
-                    Capture receipt with camera
-                  </Text>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="flex-row items-center p-4 rounded-xl"
-                style={{ backgroundColor: COLORS.surface }}
-                onPress={() => handleScanReceipt(false)}
-              >
-                <View
-                  className="w-12 h-12 rounded-full items-center justify-center mr-4"
-                  style={{ backgroundColor: COLORS.pastel.blue + '20' }}
-                >
-                  <ImageIcon size={24} color={COLORS.pastel.blue} />
-                </View>
-                <View className="flex-1">
-                  <Text style={{ color: COLORS.text.primary }} className="text-base font-semibold">
-                    Choose from Gallery
-                  </Text>
-                  <Text style={{ color: COLORS.text.muted }} className="text-sm">
-                    Select existing photo
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
+        onClose={closeScanOptions}
+        onScanWithCamera={() => handleScanReceipt(true, () => setModalVisible(true))}
+        onScanFromGallery={() => handleScanReceipt(false, () => setModalVisible(true))}
+        colors={COLORS}
+      />
 
-      {/* Scanning Overlay */}
-      {scanning && (
-        <View
-          className="absolute inset-0 items-center justify-center"
-          style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
-        >
-          <View className="rounded-2xl p-6 items-center" style={{ backgroundColor: COLORS.card }}>
-            <ActivityIndicator size="large" color={COLORS.pastel.purple} />
-            <Text style={{ color: COLORS.text.primary }} className="text-base font-semibold mt-4">
-              Scanning Receipt...
-            </Text>
-            <Text style={{ color: COLORS.text.muted }} className="text-sm mt-1">
-              AI is analyzing your receipt
-            </Text>
-          </View>
-        </View>
-      )}
+      <ScanningOverlay visible={scanning} colors={COLORS} />
 
-      {/* Initialize Balance Modal */}
-      <Modal
+      <InitializeBalanceModal
         visible={initModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => {
-          setInitModalVisible(false);
-          setInitAmount(null);
-        }}
-      >
-        <TouchableOpacity
-          className="flex-1 items-center"
-          style={{ backgroundColor: 'rgba(0,0,0,0.5)', paddingTop: '60%' }}
-          activeOpacity={1}
-          onPress={() => {
-            setInitModalVisible(false);
-            setInitAmount(null);
-          }}
-        >
-          <TouchableOpacity
-            activeOpacity={1}
-            className="w-[85%] rounded-2xl p-5"
-            style={{ backgroundColor: COLORS.card }}
-          >
-            <View className="flex-row justify-between items-center mb-4">
-              <Text style={{ color: COLORS.text.primary }} className="text-xl font-bold">
-                Set Initial Balance
-              </Text>
-              <TouchableOpacity
-                onPress={() => {
-                  setInitModalVisible(false);
-                  setInitAmount(null);
-                }}
-              >
-                <X size={24} color={COLORS.text.secondary} />
-              </TouchableOpacity>
-            </View>
-
-            <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">
-              Enter your current balance
-            </Text>
-            <View
-              className="rounded-xl mb-4 p-4 flex-row items-center"
-              style={{ backgroundColor: COLORS.surface }}
-            >
-              <Text style={{ color: COLORS.text.primary, fontSize: FONT_SIZES.base }}>$</Text>
-              <CurrencyInput
-                value={initAmount}
-                onChangeValue={setInitAmount}
-                prefix=""
-                delimiter=","
-                separator="."
-                precision={2}
-                minValue={0}
-                maxValue={999999.99}
-                keyboardType="number-pad"
-                style={{
-                  flex: 1,
-                  marginLeft: 4,
-                  color: COLORS.text.primary,
-                  fontSize: FONT_SIZES.base,
-                  includeFontPadding: false,
-                  padding: 0,
-                }}
-                placeholder="0.00"
-                placeholderTextColor={COLORS.text.muted}
-                autoFocus
-              />
-            </View>
-
-            <TouchableOpacity
-              className="rounded-xl py-3 items-center"
-              style={{ backgroundColor: COLORS.pastel.green }}
-              onPress={handleInitializeBalance}
-            >
-              <Text style={{ color: COLORS.background }} className="text-base font-semibold">
-                Initialize Balance
-              </Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
+        onClose={() => setInitModalVisible(false)}
+        onInitialize={handleInitializeBalance}
+        colors={COLORS}
+      />
     </View>
   );
 }

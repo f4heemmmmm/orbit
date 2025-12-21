@@ -4,3 +4,5 @@
 
 export { useDataFetch } from './useDataFetch';
 export { useOptimisticUpdate } from './useOptimisticUpdate';
+export { useTransactions } from './useTransactions';
+export { useReceiptScanner } from './useReceiptScanner';
