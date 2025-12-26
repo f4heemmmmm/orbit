@@ -1,8 +1,3 @@
-/**
- * Scanning Overlay Component
- * Displays a loading overlay while scanning a receipt
- */
-
 import React from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 

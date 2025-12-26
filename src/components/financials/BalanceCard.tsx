@@ -1,11 +1,6 @@
-/**
- * Balance Card Component
- * Displays the financial summary with income, expenses, and balance
- */
-
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { TrendingUp, TrendingDown } from 'lucide-react-native';
+import { TrendingUp, TrendingDown, Plus } from 'lucide-react-native';
 import type { FinancialSummary } from '../../utils/transactionUtils';
 
 interface BalanceCardProps {
@@ -33,33 +28,49 @@ export default function BalanceCard({
   const { totalIncome, totalExpenses, balance, incomeRatio } = summary;
 
   return (
-    <View className="p-4 pb-2">
+    <View className="p-4 pb-4">
       <TouchableOpacity
         className="rounded-2xl p-4"
         style={{ backgroundColor: colors.card }}
         onPress={!hasTransactions ? onInitializePress : undefined}
         activeOpacity={!hasTransactions ? 0.7 : 1}
       >
-        {/* Balance Header */}
-        <View className="mb-4">
-          <Text style={{ color: colors.text.muted }} className="text-xs mb-1">
-            Total Balance
-          </Text>
-          <Text
-            style={{ color: balance >= 0 ? colors.pastel.green : colors.pastel.red }}
-            className="text-3xl font-bold"
-          >
-            ${Math.abs(balance).toFixed(2)}
-          </Text>
-        </View>
-
         {!hasTransactions ? (
-          <Text style={{ color: colors.text.muted }} className="text-xs text-center">
-            Tap to set initial balance
-          </Text>
+          <View className="flex-row items-center justify-between">
+            <View>
+              <Text style={{ color: colors.text.muted }} className="text-lg mb-1">
+                Total Balance
+              </Text>
+              <Text
+                style={{ color: balance >= 0 ? colors.pastel.green : colors.pastel.red }}
+                className="text-4xl font-semibold"
+              >
+                ${Math.abs(balance).toFixed(2)}
+              </Text>
+            </View>
+            <View
+              className="w-12 h-12 rounded-full items-center justify-center"
+              style={{ backgroundColor: colors.text.muted + '30' }}
+            >
+              <Plus size={26} color={colors.text.muted} />
+            </View>
+          </View>
         ) : (
+          <View className="mb-4">
+            <Text style={{ color: colors.text.muted }} className="text-lg mb-1">
+              Total Balance
+            </Text>
+            <Text
+              style={{ color: balance >= 0 ? colors.pastel.green : colors.pastel.red }}
+              className="text-4xl font-semibold"
+            >
+              ${Math.abs(balance).toFixed(2)}
+            </Text>
+          </View>
+        )}
+
+        {hasTransactions && (
           <>
-            {/* Income vs Expense Visual Bar */}
             <View className="flex-row h-2 rounded-full overflow-hidden mb-4">
               <View
                 className="h-full"
@@ -76,10 +87,7 @@ export default function BalanceCard({
                 }}
               />
             </View>
-
-            {/* Income & Expense Row */}
             <View className="flex-row items-center justify-between">
-              {/* Income */}
               <View className="flex-row items-center flex-1">
                 <View
                   className="w-9 h-9 rounded-full items-center justify-center"
@@ -91,19 +99,18 @@ export default function BalanceCard({
                   <Text style={{ color: colors.pastel.green }} className="text-lg font-bold">
                     ${totalIncome.toFixed(2)}
                   </Text>
-                  <Text style={{ color: colors.text.muted }} className="text-xs">
+                  <Text style={{ color: colors.text.muted }} className="text-sm font-semibold">
                     Income
                   </Text>
                 </View>
               </View>
 
-              {/* Expenses */}
               <View className="flex-row items-center flex-1 justify-end">
                 <View className="mr-2 items-end">
                   <Text style={{ color: colors.pastel.red }} className="text-lg font-bold">
                     ${totalExpenses.toFixed(2)}
                   </Text>
-                  <Text style={{ color: colors.text.muted }} className="text-xs">
+                  <Text style={{ color: colors.text.muted }} className="text-sm font-semibold">
                     Expenses
                   </Text>
                 </View>

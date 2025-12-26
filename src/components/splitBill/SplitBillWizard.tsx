@@ -9,11 +9,11 @@ import {
   Text,
   Modal,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   ActivityIndicator,
   Alert,
-  Platform,
+  Keyboard,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, ChevronLeft } from 'lucide-react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getThemeColors } from '../../constants/theme';
@@ -45,12 +45,8 @@ export default function SplitBillWizard({
 }: SplitBillWizardProps): React.JSX.Element {
   const { themeMode } = useTheme();
   const COLORS = getThemeColors(themeMode);
-  const insets = useSafeAreaInsets();
   const wizard = useSplitBillWizard();
   const [saving, setSaving] = useState(false);
-
-  // On Android, we need full safe area. On iOS with pageSheet, top is handled by the modal
-  const topPadding = Platform.OS === 'android' ? insets.top : 0;
 
   const handleClose = (): void => {
     if (wizard.state.step !== 'scan') {
@@ -137,78 +133,77 @@ export default function SplitBillWizard({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
-      <View
-        className="flex-1"
-        style={{ backgroundColor: COLORS.background, paddingTop: topPadding }}
-      >
-        {/* Header */}
-        <View
-          className="flex-row items-center justify-between px-4 py-3 border-b"
-          style={{ borderBottomColor: COLORS.surface }}
-        >
-          <View className="flex-row items-center flex-1">
-            {wizard.canGoBack ? (
-              <TouchableOpacity
-                className="mr-3 p-1"
-                onPress={wizard.goBack}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <ChevronLeft size={24} color={COLORS.text.primary} />
-              </TouchableOpacity>
-            ) : (
-              <View className="w-8" />
-            )}
-            <Text className="text-lg font-bold flex-1" style={{ color: COLORS.text.primary }}>
-              {STEP_TITLES[wizard.state.step]}
-            </Text>
-          </View>
-          <TouchableOpacity
-            className="p-1"
-            onPress={handleClose}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <X size={24} color={COLORS.text.secondary} />
-          </TouchableOpacity>
-        </View>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={handleClose}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <TouchableWithoutFeedback>
+            <View
+              className="rounded-t-3xl p-6 pt-8"
+              style={{ backgroundColor: COLORS.card, height: '92%' }}
+            >
+              {/* Header */}
+              <View className="flex-row items-center justify-between mb-5">
+                <View className="flex-row items-center flex-1">
+                  {wizard.canGoBack ? (
+                    <TouchableOpacity className="mr-3 p-1" onPress={wizard.goBack}>
+                      <ChevronLeft size={24} color={COLORS.text.primary} />
+                    </TouchableOpacity>
+                  ) : null}
+                  <Text style={{ color: COLORS.text.primary }} className="text-xl font-bold">
+                    {STEP_TITLES[wizard.state.step]}
+                  </Text>
+                </View>
+                <TouchableOpacity className="p-2" onPress={handleClose}>
+                  <X size={24} color={COLORS.text.secondary} />
+                </TouchableOpacity>
+              </View>
 
-        {/* Step Indicator */}
-        <View className="flex-row px-4 py-2" style={{ gap: 4 }}>
-          {(['scan', 'validate', 'assign', 'review'] as WizardStep[]).map((step, index) => {
-            const currentIndex = ['scan', 'validate', 'assign', 'review'].indexOf(
-              wizard.state.step
-            );
-            const isActive = index <= currentIndex;
-            return (
-              <View
-                key={step}
-                className="flex-1 h-1 rounded-full"
-                style={{
-                  backgroundColor: isActive ? COLORS.pastel.blue : COLORS.surface,
-                }}
-              />
-            );
-          })}
-        </View>
+              {/* Step Indicator */}
+              <View className="flex-row mb-4" style={{ gap: 4 }}>
+                {(['scan', 'validate', 'assign', 'review'] as WizardStep[]).map((step, index) => {
+                  const currentIndex = ['scan', 'validate', 'assign', 'review'].indexOf(
+                    wizard.state.step
+                  );
+                  const isActive = index <= currentIndex;
+                  return (
+                    <View
+                      key={step}
+                      className="flex-1 h-1 rounded-full"
+                      style={{
+                        backgroundColor: isActive ? COLORS.pastel.blue : COLORS.surface,
+                      }}
+                    />
+                  );
+                })}
+              </View>
 
-        {/* Content */}
-        <View className="flex-1">{renderStep()}</View>
+              {/* Content */}
+              <View className="flex-1">{renderStep()}</View>
 
-        {/* Saving Overlay */}
-        {saving && (
-          <View
-            className="absolute inset-0 items-center justify-center"
-            style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
-          >
-            <View className="rounded-2xl p-6 items-center" style={{ backgroundColor: COLORS.card }}>
-              <ActivityIndicator size="large" color={COLORS.pastel.blue} />
-              <Text className="text-base font-semibold mt-4" style={{ color: COLORS.text.primary }}>
-                Saving...
-              </Text>
+              {/* Saving Overlay */}
+              {saving && (
+                <View
+                  className="absolute inset-0 items-center justify-center"
+                  style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+                >
+                  <View
+                    className="rounded-2xl p-6 items-center"
+                    style={{ backgroundColor: COLORS.surface }}
+                  >
+                    <ActivityIndicator size="large" color={COLORS.pastel.blue} />
+                    <Text
+                      className="text-base font-semibold mt-4"
+                      style={{ color: COLORS.text.primary }}
+                    >
+                      Saving...
+                    </Text>
+                  </View>
+                </View>
+              )}
             </View>
-          </View>
-        )}
-      </View>
+          </TouchableWithoutFeedback>
+        </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 }

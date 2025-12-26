@@ -4,8 +4,16 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal, Alert } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Modal,
+  Alert,
+  TouchableWithoutFeedback,
+} from 'react-native';
 import { UserPlus, X, Check, AlertCircle, Users } from 'lucide-react-native';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { getThemeColors, FONT_SIZES } from '../../../constants/theme';
@@ -32,7 +40,6 @@ const PARTICIPANT_COLORS = [
 export default function AssignPeopleStep({ wizard }: AssignPeopleStepProps): React.JSX.Element {
   const { themeMode } = useTheme();
   const COLORS = getThemeColors(themeMode);
-  const insets = useSafeAreaInsets();
   const [newName, setNewName] = useState('');
   const [recentNames, setRecentNames] = useState<string[]>([]);
   const [assignModalVisible, setAssignModalVisible] = useState(false);
@@ -115,20 +122,25 @@ export default function AssignPeopleStep({ wizard }: AssignPeopleStepProps): Rea
 
   return (
     <View className="flex-1">
-      <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Add Participant */}
-        <View className="py-3">
-          <Text className="text-sm mb-2" style={{ color: COLORS.text.secondary }}>
+        <View className="mb-3">
+          <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">
             Add People
           </Text>
           <View className="flex-row items-center" style={{ gap: 8 }}>
             <View
-              className="flex-1 flex-row items-center px-3 rounded-xl"
-              style={{ backgroundColor: COLORS.card }}
+              className="flex-1 flex-row items-center rounded-xl p-4"
+              style={{ backgroundColor: COLORS.surface }}
             >
               <TextInput
-                className="flex-1 py-3"
-                style={{ color: COLORS.text.primary, fontSize: FONT_SIZES.base }}
+                className="flex-1"
+                style={{
+                  color: COLORS.text.primary,
+                  fontSize: FONT_SIZES.base,
+                  includeFontPadding: false,
+                  padding: 0,
+                }}
                 value={newName}
                 onChangeText={setNewName}
                 placeholder="Enter name"
@@ -169,8 +181,8 @@ export default function AssignPeopleStep({ wizard }: AssignPeopleStepProps): Rea
         </View>
 
         {/* Participants List */}
-        <View className="py-3">
-          <Text className="text-sm mb-2" style={{ color: COLORS.text.secondary }}>
+        <View className="mb-3">
+          <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-2">
             People ({wizard.state.participants.length})
           </Text>
           <View className="flex-row flex-wrap" style={{ gap: 8 }}>
@@ -208,9 +220,9 @@ export default function AssignPeopleStep({ wizard }: AssignPeopleStepProps): Rea
         </View>
 
         {/* Items to Assign */}
-        <View className="py-3">
+        <View className="mb-3">
           <View className="flex-row items-center justify-between mb-2">
-            <Text className="text-sm" style={{ color: COLORS.text.secondary }}>
+            <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium">
               Assign Items
             </Text>
             {unassignedCount > 0 && (
@@ -232,7 +244,7 @@ export default function AssignPeopleStep({ wizard }: AssignPeopleStepProps): Rea
                 key={item.tempId}
                 className="rounded-xl p-3 mb-2"
                 style={{
-                  backgroundColor: COLORS.card,
+                  backgroundColor: COLORS.surface,
                   borderWidth: !isAssigned ? 1 : 0,
                   borderColor: COLORS.pastel.orange,
                 }}
@@ -296,12 +308,9 @@ export default function AssignPeopleStep({ wizard }: AssignPeopleStepProps): Rea
       </ScrollView>
 
       {/* Next Button */}
-      <View
-        className="absolute bottom-0 left-0 right-0 p-4"
-        style={{ backgroundColor: COLORS.background, paddingBottom: Math.max(insets.bottom, 16) }}
-      >
+      <View className="flex-row gap-3 pb-8">
         <TouchableOpacity
-          className="rounded-xl py-4 items-center"
+          className="flex-1 p-4 rounded-xl items-center"
           style={{
             backgroundColor:
               wizard.state.participants.length > 0 && unassignedCount === 0
@@ -329,78 +338,82 @@ export default function AssignPeopleStep({ wizard }: AssignPeopleStepProps): Rea
       <Modal
         visible={assignModalVisible}
         transparent
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setAssignModalVisible(false)}
       >
-        <TouchableOpacity
-          className="flex-1 justify-end"
-          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
-          activeOpacity={1}
-          onPress={() => setAssignModalVisible(false)}
-        >
-          <TouchableOpacity activeOpacity={1}>
-            <View className="rounded-t-3xl p-6" style={{ backgroundColor: COLORS.card }}>
-              <Text className="text-lg font-bold mb-2" style={{ color: COLORS.text.primary }}>
-                Assign to
-              </Text>
-              {selectedItem && (
-                <Text className="text-sm mb-4" style={{ color: COLORS.text.secondary }}>
-                  {selectedItem.name} - ${selectedItem.totalPrice.toFixed(2)}
-                </Text>
-              )}
-
-              <Text className="text-xs mb-3" style={{ color: COLORS.text.muted }}>
-                Select one or more people to split this item
-              </Text>
-
-              {wizard.state.participants.map((participant, index) => {
-                const isSelected =
-                  selectedItem &&
-                  wizard.getItemAssignees(selectedItem.tempId).includes(participant.tempId);
-
-                return (
-                  <TouchableOpacity
-                    key={participant.tempId}
-                    className="flex-row items-center p-3 rounded-xl mb-2"
-                    style={{
-                      backgroundColor: isSelected
-                        ? getParticipantColor(index) + '30'
-                        : COLORS.surface,
-                    }}
-                    onPress={() => {
-                      if (selectedItem) {
-                        wizard.toggleItemAssignment(selectedItem.tempId, participant.tempId);
-                      }
-                    }}
-                  >
-                    <View
-                      className="w-8 h-8 rounded-full items-center justify-center mr-3"
-                      style={{ backgroundColor: getParticipantColor(index) }}
-                    >
-                      <Text className="text-sm font-bold" style={{ color: COLORS.background }}>
-                        {participant.name.charAt(0).toUpperCase()}
-                      </Text>
-                    </View>
-                    <Text className="flex-1 font-medium" style={{ color: COLORS.text.primary }}>
-                      {participant.name}
-                    </Text>
-                    {isSelected && <Check size={20} color={COLORS.pastel.green} />}
+        <TouchableWithoutFeedback onPress={() => setAssignModalVisible(false)}>
+          <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+            <TouchableWithoutFeedback>
+              <View className="rounded-t-3xl p-6 pt-8" style={{ backgroundColor: COLORS.card }}>
+                <View className="flex-row items-center justify-between mb-5">
+                  <Text style={{ color: COLORS.text.primary }} className="text-xl font-bold">
+                    Assign to
+                  </Text>
+                  <TouchableOpacity className="p-2" onPress={() => setAssignModalVisible(false)}>
+                    <X size={24} color={COLORS.text.secondary} />
                   </TouchableOpacity>
-                );
-              })}
+                </View>
 
-              <TouchableOpacity
-                className="rounded-xl py-3 items-center mt-4"
-                style={{ backgroundColor: COLORS.pastel.blue }}
-                onPress={() => setAssignModalVisible(false)}
-              >
-                <Text className="text-base font-semibold" style={{ color: COLORS.background }}>
-                  Done
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
+                {selectedItem && (
+                  <Text
+                    style={{ color: COLORS.text.secondary }}
+                    className="text-base font-medium mb-4"
+                  >
+                    {selectedItem.name} - ${selectedItem.totalPrice.toFixed(2)}
+                  </Text>
+                )}
+
+                {wizard.state.participants.map((participant, index) => {
+                  const isSelected =
+                    selectedItem &&
+                    wizard.getItemAssignees(selectedItem.tempId).includes(participant.tempId);
+
+                  return (
+                    <TouchableOpacity
+                      key={participant.tempId}
+                      className="flex-row items-center p-4 rounded-xl mb-3"
+                      style={{
+                        backgroundColor: isSelected
+                          ? getParticipantColor(index) + '30'
+                          : COLORS.surface,
+                      }}
+                      onPress={() => {
+                        if (selectedItem) {
+                          wizard.toggleItemAssignment(selectedItem.tempId, participant.tempId);
+                        }
+                      }}
+                    >
+                      <View
+                        className="w-10 h-10 rounded-full items-center justify-center mr-3"
+                        style={{ backgroundColor: getParticipantColor(index) }}
+                      >
+                        <Text className="text-base font-bold" style={{ color: COLORS.background }}>
+                          {participant.name.charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                      <Text className="flex-1 font-semibold" style={{ color: COLORS.text.primary }}>
+                        {participant.name}
+                      </Text>
+                      {isSelected && <Check size={20} color={COLORS.pastel.green} />}
+                    </TouchableOpacity>
+                  );
+                })}
+
+                <View className="flex-row gap-3 pt-4 pb-8">
+                  <TouchableOpacity
+                    className="flex-1 p-4 rounded-xl items-center"
+                    style={{ backgroundColor: COLORS.pastel.blue }}
+                    onPress={() => setAssignModalVisible(false)}
+                  >
+                    <Text style={{ color: COLORS.background }} className="text-base font-semibold">
+                      Done
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
       </Modal>
     </View>
   );

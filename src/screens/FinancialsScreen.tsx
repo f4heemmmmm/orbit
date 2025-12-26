@@ -1,24 +1,25 @@
+import { Camera, Wallet, Plus, Users } from 'lucide-react-native';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Camera, Wallet, Plus, Users } from 'lucide-react-native';
-import AddTransactionModal from '../components/AddTransactionModal';
-import SwipeableTransactionItem from '../components/SwipeableTransactionItem';
-import SplitBillWizard from '../components/splitBill/SplitBillWizard';
-import SplitBillListItem from '../components/splitBill/SplitBillListItem';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+
+// Components and Constants
 import {
   BalanceCard,
   ScanOptionsModal,
   ScanningOverlay,
   InitializeBalanceModal,
 } from '../components/financials';
-import type { Transaction } from '../types';
-import type { SplitBill } from '../types/splitBill';
-import type { FinancialsStackParamList } from '../navigation/types';
-import { useTheme } from '../contexts/ThemeContext';
 import { getThemeColors } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { formatRelativeDate } from '../utils/dateUtils';
+import AddTransactionModal from '../components/AddTransactionModal';
+import SplitBillWizard from '../components/splitBill/SplitBillWizard';
+import SplitBillListItem from '../components/splitBill/SplitBillListItem';
+import SwipeableTransactionItem from '../components/SwipeableTransactionItem';
+
+// Utils, Services and Hooks
 import {
   groupTransactionsByDate,
   sortDatesDescending,
@@ -26,6 +27,11 @@ import {
 } from '../utils/transactionUtils';
 import { useTransactions, useReceiptScanner } from '../hooks';
 import { getSplitBills } from '../services/splitBillService';
+
+// Types
+import type { Transaction } from '../types';
+import type { SplitBill } from '../types/splitBill';
+import type { FinancialsStackParamList } from '../navigation/types';
 
 type NavigationProp = NativeStackNavigationProp<FinancialsStackParamList>;
 
@@ -42,20 +48,13 @@ export default function FinancialsScreen(): React.JSX.Element {
   const navigation = useNavigation<NavigationProp>();
   const { themeMode } = useTheme();
   const COLORS = getThemeColors(themeMode);
-
-  // Tab state
   const [activeTab, setActiveTab] = useState<TabType>('transactions');
-
-  // Modal states
   const [modalVisible, setModalVisible] = useState(false);
   const [initModalVisible, setInitModalVisible] = useState(false);
-
-  // Split bill state
   const [splitBills, setSplitBills] = useState<SplitBill[]>([]);
   const [splitBillsLoading, setSplitBillsLoading] = useState(true);
   const [wizardVisible, setWizardVisible] = useState(false);
 
-  // Hooks
   const {
     transactions,
     loading,
@@ -75,7 +74,6 @@ export default function FinancialsScreen(): React.JSX.Element {
     clearInitialData,
   } = useReceiptScanner();
 
-  // Computed values
   const financialSummary = useMemo(() => calculateFinancialSummary(transactions), [transactions]);
 
   const groupedTransactions = useMemo(() => groupTransactionsByDate(transactions), [transactions]);
@@ -85,7 +83,6 @@ export default function FinancialsScreen(): React.JSX.Element {
     [groupedTransactions]
   );
 
-  // Split bill handlers
   const loadSplitBills = useCallback(async (): Promise<void> => {
     try {
       setSplitBillsLoading(true);
@@ -112,7 +109,6 @@ export default function FinancialsScreen(): React.JSX.Element {
     }
   }, [activeTab, loadSplitBills]);
 
-  // Modal handlers
   const handleOpenAddModal = (): void => {
     clearInitialData();
     setModalVisible(true);
@@ -134,7 +130,6 @@ export default function FinancialsScreen(): React.JSX.Element {
     return initializeBalance(amount);
   };
 
-  // Render transaction item
   const renderTransaction = (item: Transaction): React.JSX.Element => (
     <SwipeableTransactionItem
       key={item.id}
@@ -151,7 +146,6 @@ export default function FinancialsScreen(): React.JSX.Element {
 
   return (
     <View className="flex-1" style={{ backgroundColor: COLORS.background }}>
-      {/* Balance Card */}
       <BalanceCard
         summary={financialSummary}
         hasTransactions={transactions.length > 0}
@@ -159,17 +153,16 @@ export default function FinancialsScreen(): React.JSX.Element {
         colors={COLORS}
       />
 
-      {/* Tab Selector */}
       <View className="flex-row px-4 mb-3" style={{ gap: 8 }}>
         {TABS.map(tab => (
           <TouchableOpacity
             key={tab}
-            className="flex-1 py-2 rounded-full"
+            className="flex-1 py-2 rounded-2xl"
             style={{ backgroundColor: activeTab === tab ? COLORS.pastel.blue : COLORS.card }}
             onPress={() => setActiveTab(tab)}
           >
             <Text
-              className="text-sm font-medium text-center"
+              className="text-base font-semibold text-center"
               style={{ color: activeTab === tab ? COLORS.background : COLORS.text.secondary }}
             >
               {TAB_LABELS[tab]}
@@ -193,12 +186,12 @@ export default function FinancialsScreen(): React.JSX.Element {
             </View>
           ) : sortedDates.length === 0 ? (
             <View className="items-center justify-center pt-16">
-              <Wallet size={48} color={COLORS.text.muted} />
-              <Text style={{ color: COLORS.text.muted }} className="text-base mt-3">
+              <Wallet size={30} color={COLORS.text.muted} />
+              <Text style={{ color: COLORS.text.muted }} className="font-semibold text-base mt-3">
                 No transactions yet
               </Text>
               <Text style={{ color: COLORS.text.muted }} className="text-sm mt-1">
-                Tap + to add your first transaction
+                Tap + to add your first transaction!
               </Text>
             </View>
           ) : (
@@ -231,17 +224,12 @@ export default function FinancialsScreen(): React.JSX.Element {
             </View>
           ) : splitBills.length === 0 ? (
             <View className="items-center justify-center pt-16">
-              <View
-                className="w-20 h-20 rounded-full items-center justify-center mb-4"
-                style={{ backgroundColor: COLORS.pastel.orange + '20' }}
-              >
-                <Users size={40} color={COLORS.pastel.orange} />
-              </View>
-              <Text style={{ color: COLORS.text.primary }} className="text-xl font-bold mb-2">
-                No Split Bills
+              <Users size={30} color={COLORS.text.muted} />
+              <Text style={{ color: COLORS.text.muted }} className="font-semibold text-base mt-3">
+                No split bills yet
               </Text>
-              <Text style={{ color: COLORS.text.muted }} className="text-base text-center px-8">
-                Tap + to split a bill with friends and family
+              <Text style={{ color: COLORS.text.muted }} className="text-sm mt-1">
+                Tap + to split a bill with friends!
               </Text>
             </View>
           ) : (
@@ -257,7 +245,6 @@ export default function FinancialsScreen(): React.JSX.Element {
         </ScrollView>
       )}
 
-      {/* Action Buttons - Transactions Tab */}
       {activeTab === 'transactions' && (
         <View className="absolute bottom-5 right-5 flex-row items-center" style={{ gap: 12 }}>
           <TouchableOpacity
@@ -280,7 +267,6 @@ export default function FinancialsScreen(): React.JSX.Element {
         </View>
       )}
 
-      {/* Action Button - Split Bill Tab */}
       {activeTab === 'splitBill' && (
         <View className="absolute bottom-5 right-5">
           <TouchableOpacity
@@ -294,7 +280,6 @@ export default function FinancialsScreen(): React.JSX.Element {
         </View>
       )}
 
-      {/* Modals */}
       <AddTransactionModal
         visible={modalVisible}
         onClose={handleCloseAddModal}

@@ -1,13 +1,8 @@
-/**
- * Initialize Balance Modal Component
- * Modal for setting the initial balance when starting fresh
- */
-
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal } from 'react-native';
 import { X } from 'lucide-react-native';
-import CurrencyInput from 'react-native-currency-input';
 import { FONT_SIZES } from '../../constants/theme';
+import CurrencyInput from 'react-native-currency-input';
+import { View, Text, TouchableOpacity, Modal } from 'react-native';
 
 interface InitializeBalanceModalProps {
   visible: boolean;
@@ -65,15 +60,15 @@ export default function InitializeBalanceModal({
         >
           <View className="flex-row justify-between items-center mb-4">
             <Text style={{ color: colors.text.primary }} className="text-xl font-bold">
-              Set Initial Balance
+              Set Your Initial Balance
             </Text>
             <TouchableOpacity onPress={handleClose}>
               <X size={24} color={colors.text.secondary} />
             </TouchableOpacity>
           </View>
 
-          <Text style={{ color: colors.text.secondary }} className="text-base font-medium mb-2">
-            Enter your current balance
+          <Text style={{ color: colors.text.secondary }} className="text-xs font-medium mb-2">
+            Initialize your balance to start tracking your finances.
           </Text>
           <View
             className="rounded-xl mb-4 p-4 flex-row items-center"
@@ -110,7 +105,7 @@ export default function InitializeBalanceModal({
             onPress={handleInitialize}
           >
             <Text style={{ color: colors.background }} className="text-base font-semibold">
-              Initialize Balance
+              Initialize
             </Text>
           </TouchableOpacity>
         </TouchableOpacity>

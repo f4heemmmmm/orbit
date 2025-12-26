@@ -5,7 +5,6 @@
 
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronDown, ChevronUp, Edit2 } from 'lucide-react-native';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { getThemeColors } from '../../../constants/theme';
@@ -34,7 +33,6 @@ const PARTICIPANT_COLORS = [
 export default function ReviewStep({ wizard, onSave, saving }: ReviewStepProps): React.JSX.Element {
   const { themeMode } = useTheme();
   const COLORS = getThemeColors(themeMode);
-  const insets = useSafeAreaInsets();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const summaries = useMemo<ParticipantSummary[]>(() => {
@@ -59,15 +57,15 @@ export default function ReviewStep({ wizard, onSave, saving }: ReviewStepProps):
 
   return (
     <View className="flex-1">
-      <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Bill Title */}
-        <View className="py-3">
+        <View className="mb-4">
           <View className="flex-row items-center justify-between">
             <View>
-              <Text className="text-xs" style={{ color: COLORS.text.muted }}>
+              <Text className="text-sm" style={{ color: COLORS.text.muted }}>
                 Bill
               </Text>
-              <Text className="text-lg font-bold" style={{ color: COLORS.text.primary }}>
+              <Text className="text-xl font-bold" style={{ color: COLORS.text.primary }}>
                 {wizard.state.title}
               </Text>
             </View>
@@ -85,8 +83,8 @@ export default function ReviewStep({ wizard, onSave, saving }: ReviewStepProps):
         </View>
 
         {/* Per-Person Summary */}
-        <View className="py-3">
-          <Text className="text-sm mb-3" style={{ color: COLORS.text.secondary }}>
+        <View className="mb-4">
+          <Text style={{ color: COLORS.text.secondary }} className="text-base font-medium mb-3">
             Each Person Owes
           </Text>
 
@@ -97,7 +95,7 @@ export default function ReviewStep({ wizard, onSave, saving }: ReviewStepProps):
               <TouchableOpacity
                 key={summary.participant.tempId}
                 className="rounded-xl mb-3 overflow-hidden"
-                style={{ backgroundColor: COLORS.card }}
+                style={{ backgroundColor: COLORS.surface }}
                 onPress={() => setExpandedId(isExpanded ? null : summary.participant.tempId)}
                 activeOpacity={0.8}
               >
@@ -133,10 +131,7 @@ export default function ReviewStep({ wizard, onSave, saving }: ReviewStepProps):
 
                 {/* Expanded Details */}
                 {isExpanded && (
-                  <View
-                    className="px-4 pb-4 pt-2 border-t"
-                    style={{ borderTopColor: COLORS.surface }}
-                  >
+                  <View className="px-4 pb-4 pt-2 border-t" style={{ borderTopColor: COLORS.card }}>
                     {/* Items */}
                     {summary.itemBreakdown.map(({ item, shareAmount, sharePercentage }) => (
                       <View key={item.tempId} className="flex-row justify-between py-2">
@@ -163,7 +158,7 @@ export default function ReviewStep({ wizard, onSave, saving }: ReviewStepProps):
                     {/* Subtotal */}
                     <View
                       className="flex-row justify-between py-2 mt-2 border-t"
-                      style={{ borderTopColor: COLORS.surface }}
+                      style={{ borderTopColor: COLORS.card }}
                     >
                       <Text className="text-sm" style={{ color: COLORS.text.secondary }}>
                         Items Subtotal
@@ -208,7 +203,7 @@ export default function ReviewStep({ wizard, onSave, saving }: ReviewStepProps):
                     {/* Total */}
                     <View
                       className="flex-row justify-between py-2 mt-2 border-t"
-                      style={{ borderTopColor: COLORS.surface }}
+                      style={{ borderTopColor: COLORS.card }}
                     >
                       <Text className="font-bold" style={{ color: COLORS.text.primary }}>
                         Total
@@ -225,8 +220,8 @@ export default function ReviewStep({ wizard, onSave, saving }: ReviewStepProps):
         </View>
 
         {/* Bill Total */}
-        <View className="py-3 mb-4">
-          <View className="rounded-xl p-4" style={{ backgroundColor: COLORS.card }}>
+        <View className="mb-5">
+          <View className="rounded-xl p-4" style={{ backgroundColor: COLORS.surface }}>
             <View className="flex-row justify-between items-center">
               <Text className="font-bold" style={{ color: COLORS.text.primary }}>
                 Bill Total
@@ -239,7 +234,7 @@ export default function ReviewStep({ wizard, onSave, saving }: ReviewStepProps):
         </View>
 
         {/* Edit Links */}
-        <View className="flex-row justify-center pb-4" style={{ gap: 16 }}>
+        <View className="flex-row justify-center mb-4" style={{ gap: 16 }}>
           <TouchableOpacity
             className="flex-row items-center"
             onPress={() => wizard.setStep('validate')}
@@ -264,17 +259,14 @@ export default function ReviewStep({ wizard, onSave, saving }: ReviewStepProps):
       </ScrollView>
 
       {/* Save Button */}
-      <View
-        className="absolute bottom-0 left-0 right-0 p-4"
-        style={{ backgroundColor: COLORS.background, paddingBottom: Math.max(insets.bottom, 16) }}
-      >
+      <View className="flex-row gap-3 pb-8">
         <TouchableOpacity
-          className="rounded-xl py-4 items-center"
+          className="flex-1 p-4 rounded-xl items-center"
           style={{ backgroundColor: COLORS.pastel.green }}
           onPress={onSave}
           disabled={saving}
         >
-          <Text className="text-base font-semibold" style={{ color: COLORS.background }}>
+          <Text style={{ color: COLORS.background }} className="text-base font-semibold">
             {saving ? 'Saving...' : 'Save Split Bill'}
           </Text>
         </TouchableOpacity>
