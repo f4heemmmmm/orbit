@@ -276,11 +276,14 @@ export default function SettingsScreen({ onSignOut }: SettingsScreenProps): Reac
           <View className="rounded-2xl overflow-hidden" style={{ backgroundColor: COLORS.card }}>
             <View className="flex-row items-center justify-between p-4">
               <View className="flex-row items-center flex-1">
-                {themeMode === 'dark' ? (
-                  <Moon size={22} color={COLORS.pastel.purple} />
-                ) : (
-                  <Sun size={22} color={COLORS.pastel.orange} />
-                )}
+                {/* Fixed-width icon container to prevent layout shift */}
+                <View className="w-6 items-center">
+                  {themeMode === 'dark' ? (
+                    <Moon size={22} color={COLORS.pastel.purple} />
+                  ) : (
+                    <Sun size={22} color={COLORS.pastel.orange} />
+                  )}
+                </View>
                 <View className="ml-3 flex-1">
                   <Text style={{ color: COLORS.text.primary }} className="text-base font-medium">
                     Dark Mode
@@ -293,9 +296,12 @@ export default function SettingsScreen({ onSignOut }: SettingsScreenProps): Reac
               <Switch
                 value={themeMode === 'dark'}
                 onValueChange={toggleTheme}
-                trackColor={{ false: COLORS.surface, true: COLORS.pastel.purple }}
-                thumbColor={themeMode === 'dark' ? COLORS.pastel.blue : COLORS.text.muted}
-                ios_backgroundColor={COLORS.surface}
+                trackColor={{
+                  false: themeMode === 'light' ? '#E5E5EA' : COLORS.surface,
+                  true: COLORS.pastel.purple,
+                }}
+                thumbColor="#FFFFFF"
+                ios_backgroundColor={themeMode === 'light' ? '#E5E5EA' : COLORS.surface}
               />
             </View>
           </View>
@@ -317,7 +323,9 @@ export default function SettingsScreen({ onSignOut }: SettingsScreenProps): Reac
               onPress={handleCitySelect}
               activeOpacity={0.7}
             >
-              <MapPin size={22} color={COLORS.pastel.blue} />
+              <View className="w-6 items-center">
+                <MapPin size={22} color={COLORS.pastel.blue} />
+              </View>
               <View className="ml-3 flex-1">
                 <Text style={{ color: COLORS.text.primary }} className="text-base font-medium">
                   Location
@@ -336,7 +344,9 @@ export default function SettingsScreen({ onSignOut }: SettingsScreenProps): Reac
               onPress={handleMethodSelect}
               activeOpacity={0.7}
             >
-              <Calculator size={22} color={COLORS.pastel.purple} />
+              <View className="w-6 items-center">
+                <Calculator size={22} color={COLORS.pastel.purple} />
+              </View>
               <View className="ml-3 flex-1">
                 <Text style={{ color: COLORS.text.primary }} className="text-base font-medium">
                   Calculation Method
@@ -359,11 +369,13 @@ export default function SettingsScreen({ onSignOut }: SettingsScreenProps): Reac
               disabled={syncing || loading}
               activeOpacity={0.7}
             >
-              {syncing ? (
-                <ActivityIndicator size={22} color={COLORS.pastel.teal} />
-              ) : (
-                <RefreshCw size={22} color={COLORS.pastel.teal} />
-              )}
+              <View className="w-6 items-center">
+                {syncing ? (
+                  <ActivityIndicator size="small" color={COLORS.pastel.teal} />
+                ) : (
+                  <RefreshCw size={22} color={COLORS.pastel.teal} />
+                )}
+              </View>
               <View className="ml-3 flex-1">
                 <Text style={{ color: COLORS.text.primary }} className="text-base font-medium">
                   {syncing ? 'Syncing...' : 'Sync Prayer Calendar'}
@@ -393,7 +405,9 @@ export default function SettingsScreen({ onSignOut }: SettingsScreenProps): Reac
               disabled={loading}
               activeOpacity={0.7}
             >
-              <LogOut size={22} color={COLORS.pastel.orange} />
+              <View className="w-6 items-center">
+                <LogOut size={22} color={COLORS.pastel.orange} />
+              </View>
               <View className="ml-3 flex-1">
                 <Text style={{ color: COLORS.text.primary }} className="text-base font-medium">
                   Sign Out
@@ -411,7 +425,9 @@ export default function SettingsScreen({ onSignOut }: SettingsScreenProps): Reac
               disabled={loading}
               activeOpacity={0.7}
             >
-              <Trash2 size={22} color={COLORS.pastel.red} />
+              <View className="w-6 items-center">
+                <Trash2 size={22} color={COLORS.pastel.red} />
+              </View>
               <View className="ml-3 flex-1">
                 <Text style={{ color: COLORS.pastel.red }} className="text-base font-medium">
                   Delete Account
